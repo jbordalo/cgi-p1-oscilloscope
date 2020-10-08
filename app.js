@@ -7,7 +7,7 @@ var gl;
 let currentFunction = SIN;
 let funcLoc, ampLoc, angFreqLoc, phaseLoc;
 let $selectFunc = document.getElementById('select-func');
-let currentAmp = 0.0, currentFreq = 2 * Math.PI, currentPhase = 2 * Math.PI;
+let currentAmp = 0.3, currentFreq = 2 * Math.PI, currentPhase = 2 * Math.PI;
 
 let timeLoc;
 let time = 0;
@@ -67,7 +67,7 @@ window.onload = function init() {
 
     // Configure WebGL
     gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.clearColor(1.0, 1.0, 0.89, 1.0);
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
     // Load shaders and initialize attribute buffers
     var program = initShaders(gl, "vertex-shader", "fragment-shader");
@@ -103,7 +103,9 @@ function render() {
     gl.uniform1f(angFreqLoc, 2 * Math.PI * currentFreq);
     gl.uniform1f(phaseLoc, currentPhase);
     gl.uniform1f(timeLoc, time);
-    time += .01;
+
+    time += .007;
+
     gl.drawArrays(gl.LINE_STRIP, 0, 10000);
     requestAnimationFrame(render);
 }
