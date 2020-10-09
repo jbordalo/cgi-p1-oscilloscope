@@ -11,6 +11,14 @@ let currentAmp = 0.3, currentFreq = 2 * Math.PI, currentPhase = 2 * Math.PI;
 
 let timeLoc;
 let time = 0;
+var gridProgram;
+var program;
+
+var grid;
+var times;
+var bufferId;
+var bufferId1;
+
 
 let $amplitudeSlider = document.getElementById('amplitude-slider');
 $amplitudeSlider.oninput = () => {
@@ -39,6 +47,32 @@ function genNumbers() {
     return a;
 }
 
+function genGridPoints(vertical, horizontal) {
+    let v = [];
+    step = 2/horizontal;
+    for(let i = -1; i<1; i+= step){
+        v.push(vec2(1.0,i));
+        v.push(vec2(-1.0,i));
+    }
+    step = 2/vertical;
+    for(let i = -1; i<1; i+= step){
+        v.push(vec2(i, 1.0));
+        v.push(vec2(i,-1.0));
+    }
+    return v;
+}
+
+function toDrawData(program, bufferId, vector, attr, size){
+    gl.useProgram(program);
+    gl.bindBuffer(gl.ARRAY_BUFFER, bufferId);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(vector), gl.STATIC_DRAW);
+    
+    var loc = gl.getAttribLocation(program, attr);
+    gl.vertexAttribPointer(loc, size, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(loc);   
+}
+
+
 $selectFunc.addEventListener("change", e => {
     value = $selectFunc.options[$selectFunc.selectedIndex].value;
     console.log($selectFunc.options[$selectFunc.selectedIndex].value);
@@ -63,37 +97,36 @@ window.onload = function init() {
     gl = WebGLUtils.setupWebGL(canvas);
     if (!gl) { alert("WebGL isn't available"); }
 
-    var times = genNumbers();
+    times = genNumbers();
 
     // Configure WebGL
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
-
     // Load shaders and initialize attribute buffers
-    var program = initShaders(gl, "vertex-shader", "fragment-shader");
-    gl.useProgram(program);
-
+    program = initShaders(gl, "vertex-shader", "fragment-shader");
+    
     // Load the data into the GPU
-    var bufferId = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, bufferId);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(times), gl.STATIC_DRAW);
-
-    // Associate our shader variables with our data buffer
-    var vTimeSample = gl.getAttribLocation(program, "vTimeSample");
-    gl.vertexAttribPointer(vTimeSample, 1, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(vTimeSample);
-
+    bufferId = gl.createBuffer();
+    toDrawData(program, bufferId, times, "vTimeSample", 1);
+    
     funcLoc = gl.getUniformLocation(program, 'func');
     ampLoc = gl.getUniformLocation(program, 'amp');
     angFreqLoc = gl.getUniformLocation(program, 'angFreq');
     phaseLoc = gl.getUniformLocation(program, 'phase');
-
+    
     timeLoc = gl.getUniformLocation(program, 'time');
+    
+    gridProgram = initShaders(gl, "grid-vertex-shader", "fragment-shader");
+    bufferId1 = gl.createBuffer();
+    grid = genGridPoints(12,8);
+    toDrawData(gridProgram, bufferId1, grid, "gPosition", 2);
+    
 
     render();
 }
 
 function render() {
+    toDrawData(program, bufferId, times, "vTimeSample", 1);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.lineWidth(2.5);
 
@@ -107,5 +140,9 @@ function render() {
     time += .007;
 
     gl.drawArrays(gl.LINE_STRIP, 0, 10000);
+
+    toDrawData(gridProgram, bufferId1, grid, "gPosition", 2);
+    gl.drawArrays(gl.LINES, 0, 40);
+
     requestAnimationFrame(render);
 }

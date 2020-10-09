@@ -30,6 +30,12 @@
           gl_Position.a = 1.0;
       }
     </script>
+    <script id="grid-vertex-shader" type="x-shader/x-vertex">
+      attribute vec2 gPosition;
+      void main(){
+        gl_Position = vec4(gPosition, 0.0, 1.0);
+      }
+    </script>
     <script id="fragment-shader" type="x-shader/x-fragment">
       precision mediump float;
       void main() {
