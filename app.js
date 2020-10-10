@@ -1,16 +1,16 @@
 const SIN = 0;
 const COS = 1;
-const TAN = 2;
 const HORIZONTAL_BLOCKS = 12;
 const VERTICAL_BLOCKS = 8;
 
-const STANDARD_SCALE = 1.0 / VERTICAL_BLOCKS * 2;
+const STANDARD_HORIZONTAL_SCALE = 72.0 / HORIZONTAL_BLOCKS;
+const STANDARD_VERTICAL_SCALE = 2.0 / VERTICAL_BLOCKS;
 
 /** @type {WebGLRenderingContext} */
 var gl;
 let currentFunction = SIN;
 let funcLoc, ampLoc, angFreqLoc, phaseLoc, vScaleLoc, hScaleLoc, colorLoc, colorLoc1; //TODO : color is Uniform
-let currentAmp = 10.0 /* V */, currentFreq = 96 /* Hz */, currentPhase = 2 * Math.PI, currentHScale = 0.05, currentVScale = STANDARD_SCALE;
+let currentAmp = 1.0 /* V */, currentFreq = C0 /* Hz */, currentPhase = 1.5, currentHScale = STANDARD_HORIZONTAL_SCALE, currentVScale = STANDARD_VERTICAL_SCALE;
 
 let timeLoc;
 let time = 0;
@@ -22,14 +22,24 @@ var times;
 var bufferId;
 var bufferId1;
 
-function getScale(voltsPerBlock) {
-    return STANDARD_SCALE / voltsPerBlock;
+function getVerticalScale(voltsPerBlock) {
+    return STANDARD_VERTICAL_SCALE / voltsPerBlock;
+}
+
+function getHorizontalScale(secondsPerBlock) {
+    return (STANDARD_HORIZONTAL_SCALE * secondsPerBlock);
 }
 
 let $verticalScaleSelector = document.getElementById('vertical-scale-selector');
 $verticalScaleSelector.addEventListener("change", e = () => {
     console.log(parseFloat($verticalScaleSelector.value, 10));
-    currentVScale = getScale(parseFloat($verticalScaleSelector.options[$verticalScaleSelector.selectedIndex].value, 10));
+    currentVScale = getVerticalScale(parseFloat($verticalScaleSelector.options[$verticalScaleSelector.selectedIndex].value, 10));
+});
+
+let $horizontalScaleSelector = document.getElementById('horizontal-scale-selector');
+$horizontalScaleSelector.addEventListener("change", e = () => {
+    console.log(parseFloat($horizontalScaleSelector.value, 10));
+    currentHScale = getHorizontalScale(parseFloat($horizontalScaleSelector.options[$horizontalScaleSelector.selectedIndex].value, 10));
 });
 
 let $frequencySlider = document.getElementById('frequency-slider');
@@ -55,9 +65,6 @@ $selectFunc.addEventListener("change", e => {
             break;
         case "cos":
             currentFunction = COS;
-            break;
-        case "tan":
-            currentFunction = TAN;
             break;
         default:
             break;
@@ -154,7 +161,7 @@ function render() {
 
     toDrawData(gridProgram, bufferId1, grid, "gPosition", 2);
     gl.uniform4fv(colorLoc1, vec4(1.0, 0.0, 1.0, 1.0));
-    gl.drawArrays(gl.LINES, 0, 40);
+    gl.drawArrays(gl.LINES, 0, (HORIZONTAL_BLOCKS + VERTICAL_BLOCKS) * 2);
 
     requestAnimationFrame(render);
 }

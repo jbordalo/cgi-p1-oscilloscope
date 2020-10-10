@@ -20,9 +20,7 @@
         if (func == 0) {
           return vScale*amp*sin(angFreq * hScale * (x+time) + phase);
         } else if (func == 1) {
-          return vScale*amp*cos(angFreq* (x+time) + phase);
-        } else if (func == 2) {
-          return vScale*amp*tan(angFreq*(x+time)+phase);
+          return vScale*amp*cos(angFreq * hScale * (x+time) + phase);
         }
       }
 
@@ -46,10 +44,10 @@
           gl_FragColor = vColor;
       }
     </script>
-    <script type="text/javascript" src="../Common/webgl-utils.js"></script>
-    <script type="text/javascript" src="../Common/initShaders.js"></script>
-    <script type="text/javascript" src="../Common/MV.js"></script>
-    <script type="text/javascript" src="./notes.js"></script>
+    <script type="text/javascript" src="Common/webgl-utils.js"></script>
+    <script type="text/javascript" src="Common/initShaders.js"></script>
+    <script type="text/javascript" src="Common/MV.js"></script>
+    <script type="text/javascript" src="notes.js"></script>
   </head>
 
   <body>
@@ -79,6 +77,25 @@
       <option value="100.0">100.0 V</option>
       <option value="200.0">200.0 V</option>
       <option value="500.0">500.0 V</option>
+    </select>
+    <label>X-Scale:</label>
+    <select id="horizontal-scale-selector">
+      <option value="0.0001">1e-4 s</option>
+      <option value="0.0002"> 2e-4 s</option>
+      <option value="0.0005">5e-4 s</option>
+      <option value="0.001">1e-3 s</option>
+      <option value="0.002">2e-3 s</option>
+      <option value="0.005">5e-3 s</option>
+      <option value="0.01">1e-2 s</option>
+      <option value="0.02">2e-2 s</option>
+      <option value="0.05">5e-2 s</option>
+      <option value="0.1">1e-1 s</option>
+      <option value="0.2">2e-1 s</option>
+      <option value="0.5">5e-1 s</option>
+      <option value="1.0" selected="selected">1 s</option>
+      <option value="2.0">2 s</option>
+      <option value="5.0">5 s</option>
+      <option value="10.0">10 s</option>
     </select>
     <label>Frequency: </label>
     <input
