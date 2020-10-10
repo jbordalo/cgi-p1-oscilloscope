@@ -53,26 +53,33 @@
   </head>
 
   <body>
-    <title>Function</title>
+    <title>CGI - Oscilloscope</title>
     <canvas id="gl-canvas" width="800" height="600">
       Oops... your browser doesn't support the HTML5 canvas element"
     </canvas>
     <br />
+    <label>Wave 1:</label>
+    <label class="switch">
     <select id="select-func">
       <option value="sin">Sin</option>
       <option value="cos">Cos</option>
       <option value="tan">Tan</option>
     </select>
-    <label>Amplitude: </label>
-    <input
-      type="range"
-      min="0"
-      max="3"
-      value="0.3"
-      step="0.05"
-      class="slider"
-      id="amplitude-slider"
-    />
+    <label>Y-Scale: </label>
+    <select id="vertical-scale-selector">
+      <option value="0.1">0.1 V</option>
+      <option value="0.2">0.2 V</option>
+      <option value="0.5">0.5 V</option>
+      <option value="1.0" selected="selected">1.0 V</option>
+      <option value="2.0">2.0 V</option>
+      <option value="5.0">5.0 V</option>
+      <option value="10.0">10.0 V</option>
+      <option value="20.0">20.0 V</option>
+      <option value="50.0">50.0 V</option>
+      <option value="100.0">100.0 V</option>
+      <option value="200.0">200.0 V</option>
+      <option value="500.0">500.0 V</option>
+    </select>
     <label>Frequency: </label>
     <input
       type="range"
@@ -80,7 +87,6 @@
       max="6.2831852"
       value="3.1415926"
       step="0.05"
-      class="slider"
       id="frequency-slider"
     />
     <label>Phase: </label>
