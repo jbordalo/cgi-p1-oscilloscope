@@ -1,6 +1,8 @@
 const SIN = 0;
 const COS = 1;
 const TAN = 2;
+const HORIZONTAL_BLOCKS = 12;
+const VERTICAL_BLOCKS = 8;
 
 /** @type {WebGLRenderingContext} */
 var gl;
@@ -119,7 +121,7 @@ window.onload = function init() {
     
     gridProgram = initShaders(gl, "grid-vertex-shader", "fragment-shader");
     bufferId1 = gl.createBuffer();
-    grid = genGridPoints(12,8);
+    grid = genGridPoints(HORIZONTAL_BLOCKS, VERTICAL_BLOCKS);
     toDrawData(gridProgram, bufferId1, grid, "gPosition", 2);
     colorLoc1 = gl.getUniformLocation(gridProgram, "vColor")
 
