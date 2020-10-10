@@ -4,10 +4,13 @@
     <script id="vertex-shader" type="x-shader/x-vertex">
       attribute float vTimeSample;
       uniform int func;
+
       uniform float amp;
       uniform float angFreq;
       uniform float phase;
       uniform float time;
+      uniform float vScale;
+      uniform float hScale;
 
       float normalizeInput(float value, float inMin, float inMax, float outMin, float outMax) {
         return outMin + (outMax - outMin) * (value - inMin) / (inMax - inMin);
@@ -15,11 +18,11 @@
 
       float getImage(float x) {
         if (func == 0) {
-          return amp*sin(angFreq * (x+time) + phase);
+          return vScale*amp*sin(angFreq * hScale * (x+time) + phase);
         } else if (func == 1) {
-          return amp*cos(angFreq* (x+time) + phase);
+          return vScale*amp*cos(angFreq* (x+time) + phase);
         } else if (func == 2) {
-          return amp*tan(angFreq*(x+time)+phase);
+          return vScale*amp*tan(angFreq*(x+time)+phase);
         }
       }
 
@@ -46,6 +49,7 @@
     <script type="text/javascript" src="../Common/webgl-utils.js"></script>
     <script type="text/javascript" src="../Common/initShaders.js"></script>
     <script type="text/javascript" src="../Common/MV.js"></script>
+    <script type="text/javascript" src="./notes.js"></script>
   </head>
 
   <body>
@@ -86,7 +90,6 @@
       max="6.2831852"
       value="3.1415926"
       step="0.05"
-      class="slider"
       id="phase-slider"
     />
   </body>
