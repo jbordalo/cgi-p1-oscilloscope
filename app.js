@@ -9,7 +9,7 @@ const STANDARD_VERTICAL_SCALE = 2.0 / VERTICAL_BLOCKS;
 /** @type {WebGLRenderingContext} */
 var gl;
 let currentFunction = SIN;
-let funcLoc, ampLoc, angFreqLoc, phaseLoc, vScaleLoc, hScaleLoc, colorLoc, colorLoc1; //TODO : color is Uniform
+let funcLoc, ampLoc, angFreqLoc, phaseLoc, vScaleLoc, hScaleLoc;
 let currentAmp = 1.0 /* V */, currentFreq = C0 /* Hz */, currentPhase = 1.5, currentHScale = STANDARD_HORIZONTAL_SCALE, currentVScale = STANDARD_VERTICAL_SCALE;
 
 let timeLoc;
@@ -17,8 +17,6 @@ let time = 0;
 var gridProgram;
 var program;
 
-var grid;
-var times;
 var bufferId;
 var bufferId1;
 
@@ -94,10 +92,9 @@ function genGridPoints(vertical, horizontal) {
     return v;
 }
 
-function toDrawData(program, bufferId, vector, attr, size) {
+function toDrawData(program, bufferId, attr, size) {
     gl.useProgram(program);
     gl.bindBuffer(gl.ARRAY_BUFFER, bufferId);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(vector), gl.STATIC_DRAW);
 
     var loc = gl.getAttribLocation(program, attr);
     gl.vertexAttribPointer(loc, size, gl.FLOAT, false, 0, 0);
@@ -109,7 +106,7 @@ window.onload = function init() {
     gl = WebGLUtils.setupWebGL(canvas);
     if (!gl) { alert("WebGL isn't available"); }
 
-    times = genNumbers();
+    let times = genNumbers();
 
     // Configure WebGL
     gl.viewport(0, 0, canvas.width, canvas.height);
@@ -119,13 +116,16 @@ window.onload = function init() {
 
     // Load the data into the GPU
     bufferId = gl.createBuffer();
-    toDrawData(program, bufferId, times, "vTimeSample", 1);
+    gl.useProgram(program);
+    gl.bindBuffer(gl.ARRAY_BUFFER, bufferId);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(times), gl.STATIC_DRAW);
 
     funcLoc = gl.getUniformLocation(program, 'func');
     ampLoc = gl.getUniformLocation(program, 'amp');
     angFreqLoc = gl.getUniformLocation(program, 'angFreq');
     phaseLoc = gl.getUniformLocation(program, 'phase');
-    colorLoc = gl.getUniformLocation(program, "vColor")
+    let colorLoc = gl.getUniformLocation(program, "vColor")
+    gl.uniform4fv(colorLoc, vec4(0.0, 1.0, 1.0, 1.0));
     vScaleLoc = gl.getUniformLocation(program, "vScale");
     hScaleLoc = gl.getUniformLocation(program, "hScale");
 
@@ -133,18 +133,22 @@ window.onload = function init() {
 
     gridProgram = initShaders(gl, "grid-vertex-shader", "fragment-shader");
     bufferId1 = gl.createBuffer();
-    grid = genGridPoints(HORIZONTAL_BLOCKS, VERTICAL_BLOCKS);
-    toDrawData(gridProgram, bufferId1, grid, "gPosition", 2);
-    colorLoc1 = gl.getUniformLocation(gridProgram, "vColor")
+    let grid = genGridPoints(HORIZONTAL_BLOCKS, VERTICAL_BLOCKS);
+    gl.useProgram(gridProgram);
+    gl.bindBuffer(gl.ARRAY_BUFFER, bufferId1);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(grid), gl.STATIC_DRAW);
+
+    colorLoc = gl.getUniformLocation(gridProgram, "vColor")
+    gl.uniform4fv(colorLoc, vec4(1.0, 0.0, 1.0, 1.0));
 
     render();
 }
 
 function render() {
-    toDrawData(program, bufferId, times, "vTimeSample", 1);
+    toDrawData(program, bufferId, "vTimeSample", 1);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.lineWidth(2.5);
-
+    
     gl.uniform1i(funcLoc, currentFunction);
 
     gl.uniform1f(ampLoc, currentAmp);
@@ -152,15 +156,13 @@ function render() {
     gl.uniform1f(phaseLoc, currentPhase);
     gl.uniform1f(timeLoc, time);
     gl.uniform1f(vScaleLoc, currentVScale);
-    gl.uniform1f(hScaleLoc, currentHScale)
-    gl.uniform4fv(colorLoc, vec4(0.0, 1.0, 1.0, 1.0));
+    gl.uniform1f(hScaleLoc, currentHScale);
 
     time += .00;
 
     gl.drawArrays(gl.LINE_STRIP, 0, 10000);
 
-    toDrawData(gridProgram, bufferId1, grid, "gPosition", 2);
-    gl.uniform4fv(colorLoc1, vec4(1.0, 0.0, 1.0, 1.0));
+    toDrawData(gridProgram, bufferId1, "gPosition", 2);
     gl.drawArrays(gl.LINES, 0, (HORIZONTAL_BLOCKS + VERTICAL_BLOCKS) * 2);
 
     requestAnimationFrame(render);
