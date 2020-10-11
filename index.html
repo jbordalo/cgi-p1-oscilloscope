@@ -1,55 +1,13 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <script id="xy-vertex-shader" type="x-shader/x-vertex">
-      attribute float vTimeSample;
-      uniform int func;
-
-      uniform float amp;
-      uniform float angFreqX;
-      uniform float angFreqY;
-      uniform float phase;
-
-      uniform float time;
-
-      uniform float vScale;
-      uniform float hScale;
-
-      float normalizeInput(float value, float inMin, float inMax, float outMin, float outMax) {
-        return outMin + (outMax - outMin) * (value - inMin) / (inMax - inMin);
-      }
-
-      float getImage(float x) {
-        if (func == 0) {
-          return vScale * amp * sin(angFreqX * hScale * (x+time) + phase);
-        }
-      }
-
-      float getImageY(float x) {
-        if (func == 0) {
-          return vScale * amp * sin(angFreqY * hScale * (x+time) + phase);
-        } 
-      }
-
-      void main(){
-        float fx = normalizeInput(vTimeSample, 0.0, 9999.0, -1.0, 1.0);
-        float fy = getImage(fx);
-        float lx = normalizeInput(vTimeSample, 0.0, 9999.0, -1.0, 1.0);
-        float ly = getImageY(lx);
-          gl_Position.x = fy;//getImage(vTimeSample); // normalize [0, 9999] -> [-1, 1]
-          gl_Position.y = ly;//getImageY(vTimeSample);
-          // gl_Position.z = 0.0;
-          gl_Position.a = 1.0;
-      }
-    </script>
     <script id="vertex-shader" type="x-shader/x-vertex">
       attribute float vTimeSample;
-      uniform int func;
 
       uniform float amp;
       uniform float phase;
-      uniform vec3 notes;
-      uniform int numNotes;
+      uniform vec3 notesX;
+      uniform vec3 notesY;
 
       uniform float time;
 
@@ -63,8 +21,20 @@
       float getImage(float x) {
         float result = 0.0;
         for(int i = 0; i < 3; i++){
-          if(notes[i] != 0.0){
-            result += vScale*amp*sin(2.0 * 3.141592 * notes[i] * hScale * (x+time) + phase);
+          if(notesX[i] != 0.0){
+            result += vScale*amp*sin(2.0 * 3.141592 * notesX[i] * hScale * (x+time) + phase);
+          } else {
+            break;
+          }
+        }
+        return result;
+      }
+
+      float getImageY(float x) {
+        float result = 0.0;
+        for(int i = 0; i < 3; i++){
+          if(notesY[i] != 0.0){
+            result += vScale*amp*sin(2.0 * 3.141592 * notesY[i] * hScale * (x+time) + phase);
           } else {
             break;
           }
@@ -73,10 +43,14 @@
       }
 
       void main(){
-          gl_Position.x = normalizeInput(vTimeSample, 0.0, 9999.0, -1.0, 1.0); // normalize [0, 9999] -> [-1, 1]
-          gl_Position.y = getImage(gl_Position.x);
-          // gl_Position.z = 0.0;
-          gl_Position.a = 1.0;
+        if (notesX[0] == 0.0) {
+          gl_Position.x = normalizeInput(vTimeSample,0.0,9999.0,-1.0,1.0);
+        } else {
+          gl_Position.x = getImage(normalizeInput(vTimeSample,0.0,9999.0,-1.0,1.0));//getImage(vTimeSample); // normalize [0, 9999] -> [-1, 1]
+        }
+        gl_Position.y = getImageY(normalizeInput(vTimeSample,0.0,9999.0,-1.0,1.0));//getImageY(vTimeSample);
+        // gl_Position.z = 0.0;
+        gl_Position.a = 1.0;
       }
     </script>
     <script id="grid-vertex-shader" type="x-shader/x-vertex">
@@ -134,14 +108,14 @@
       <option value="0.0005">5e-4 s</option>
       <option value="0.001">1e-3 s</option>
       <option value="0.002">2e-3 s</option>
-      <option value="0.005">5e-3 s</option>
+      <option value="0.005" selected="selected">5e-3 s</option>
       <option value="0.01">1e-2 s</option>
       <option value="0.02">2e-2 s</option>
       <option value="0.05">5e-2 s</option>
       <option value="0.1">0.1 s</option>
       <option value="0.2">0.2 s</option>
       <option value="0.5">0.5 s</option>
-      <option value="1.0" selected="selected">1 s</option>
+      <option value="1.0">1 s</option>
       <option value="2.0">2 s</option>
       <option value="5.0">5 s</option>
       <option value="10.0">10 s</option>
@@ -152,7 +126,6 @@
       <option value="C4">C4</option>
       <option value="C4M">C4 Major</option>
       <option value="F4F4#">F4 + F4#</option>
-      <option value="zero">Zero</option>
     </select>
   </body>
   <script type="text/javascript" src="app.js"></script>

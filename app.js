@@ -4,21 +4,28 @@ const VERTICAL_BLOCKS = 8;
 const STANDARD_HORIZONTAL_SCALE = 72.0 / HORIZONTAL_BLOCKS;
 const STANDARD_VERTICAL_SCALE = 2.0 / VERTICAL_BLOCKS;
 
+const DEFAULT_AMPLITUDE = 1.0;
+const DEFAULT_PHASE = 1.5;
+
+let $verticalScaleSelector = document.getElementById('vertical-scale-selector');
+let $horizontalScaleSelector = document.getElementById('horizontal-scale-selector');
+let $xNoteSelector = document.getElementById('x-note-selector');
+let $yNoteSelector = document.getElementById('y-note-selector');
+
 /** @type {WebGLRenderingContext} */
-var gl;
-let currentFunction = 0; // TODO
-let funcLoc, ampLoc, phaseLoc, vScaleLoc, hScaleLoc;
-let currentAmp = 1.0 /* V */, currentYNote = vec3(C4,0.0,0.0) /* Hz */, currentPhase = 1.5, currentHScale = STANDARD_HORIZONTAL_SCALE, currentVScale = STANDARD_VERTICAL_SCALE;
-let nYnotes = 1;
-let notesLoc, numNLoc;
+let gl;
+let vScaleLoc, hScaleLoc;
+let currentYNote = vec3(C4, 0.0, 0.0), currentXNote = vec3(0.0, 0.0, 0.0), currentHScale = getHorizontalScale(parseFloat($horizontalScaleSelector.options[$horizontalScaleSelector.selectedIndex].value, 10)), currentVScale = STANDARD_VERTICAL_SCALE;
+let notesLocY, notesLocX;
 
 let timeLoc;
 let time = 0;
-var gridProgram;
-var program;
 
-var bufferId;
-var bufferId1;
+let gridProgram;
+let program;
+
+let bufferId;
+let gridBufferId;
 
 function getVerticalScale(voltsPerBlock) {
     return STANDARD_VERTICAL_SCALE / voltsPerBlock;
@@ -28,69 +35,44 @@ function getHorizontalScale(secondsPerBlock) {
     return (STANDARD_HORIZONTAL_SCALE * secondsPerBlock);
 }
 
-let $verticalScaleSelector = document.getElementById('vertical-scale-selector');
 $verticalScaleSelector.addEventListener("change", e = () => {
     console.log(parseFloat($verticalScaleSelector.value, 10));
     currentVScale = getVerticalScale(parseFloat($verticalScaleSelector.options[$verticalScaleSelector.selectedIndex].value, 10));
 });
 
-let $horizontalScaleSelector = document.getElementById('horizontal-scale-selector');
 $horizontalScaleSelector.addEventListener("change", e = () => {
     console.log(parseFloat($horizontalScaleSelector.value, 10));
     currentHScale = getHorizontalScale(parseFloat($horizontalScaleSelector.options[$horizontalScaleSelector.selectedIndex].value, 10));
 });
 
-let $xNoteSelector = document.getElementById('x-note-selector');
+function pickNote(value) {
+    switch (value) {
+        case "time":
+        case "zero":
+            return vec3(0.0, 0.0, 0.0);
+        case "C4":
+            return vec3(C4, 0.0, 0.0);
+        case "C4M":
+            return vec3(C4, G4, E4);
+        case "F4F4#":
+            return vec3(F4, FSHARP4, 0.0);
+        default:
+            break;
+    }
+}
+
 $xNoteSelector.addEventListener("change", e => {
     value = $xNoteSelector.options[$xNoteSelector.selectedIndex].value;
     console.log($xNoteSelector.options[$xNoteSelector.selectedIndex].value);
 
-    switch (value) {
-        case "time":
-            currentXNote = time;
-            break;
-        case "zero":
-            currentXNote = 0;
-            break;
-        case "C4":
-            currentXNote = [C4];
-            break;
-        case "C4M":
-            currentXNote = [C4, G4, E4];
-            break;
-        case "F4F4#":
-            currentXNote = [F4, FSHARP4];
-            break;
-        default:
-            break;
-    }
+    currentXNote = pickNote(value);
 });
 
-let $yNoteSelector = document.getElementById('y-note-selector');
 $yNoteSelector.addEventListener("change", e => {
     value = $yNoteSelector.options[$yNoteSelector.selectedIndex].value;
     console.log($yNoteSelector.options[$yNoteSelector.selectedIndex].value);
 
-    switch (value) {
-        case "zero":
-            currentYNote = vec3(0.0,0.0,0.0);
-            nYnotes = 0;
-            break;
-        case "C4":
-            currentYNote = vec3(C4,0.0,0.0);
-            nYnotes = 1;
-            break;
-        case "C4M":
-            currentYNote = vec3(C4, G4, E4);
-            nYnotes = 3;
-            break;
-        case "F4F4#":
-            currentYNote = vec3(F4, FSHARP4,0.0);
-            nYnotes = 2;
-            break;
-        default:
-            break;
-    }
+    currentYNote = pickNote(value);
 });
 
 function genNumbers() {
@@ -144,24 +126,28 @@ window.onload = function init() {
     gl.bindBuffer(gl.ARRAY_BUFFER, bufferId);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(times), gl.STATIC_DRAW);
 
-    funcLoc = gl.getUniformLocation(program, 'func');
-    ampLoc = gl.getUniformLocation(program, 'amp');
-    phaseLoc = gl.getUniformLocation(program, 'phase');
+    let ampLoc = gl.getUniformLocation(program, 'amp');
+    gl.uniform1f(ampLoc, DEFAULT_AMPLITUDE);
+    let phaseLoc = gl.getUniformLocation(program, 'phase');
+    gl.uniform1f(phaseLoc, DEFAULT_PHASE);
     let colorLoc = gl.getUniformLocation(program, "vColor")
     gl.uniform4fv(colorLoc, vec4(0.0, 1.0, 1.0, 1.0));
     vScaleLoc = gl.getUniformLocation(program, "vScale");
     hScaleLoc = gl.getUniformLocation(program, "hScale");
-    
+
     timeLoc = gl.getUniformLocation(program, 'time');
 
-    notesLoc = gl.getUniformLocation(program, "notes");
-    numNLoc = gl.getUniformLocation(program,"numNotes");
+    notesLocY = gl.getUniformLocation(program, "notesY");
+    notesLocX = gl.getUniformLocation(program, "notesX");
 
+    //
+    // GRID PROGRAM
+    //
     gridProgram = initShaders(gl, "grid-vertex-shader", "fragment-shader");
-    bufferId1 = gl.createBuffer();
+    gridBufferId = gl.createBuffer();
     let grid = genGridPoints(HORIZONTAL_BLOCKS, VERTICAL_BLOCKS);
     gl.useProgram(gridProgram);
-    gl.bindBuffer(gl.ARRAY_BUFFER, bufferId1);
+    gl.bindBuffer(gl.ARRAY_BUFFER, gridBufferId);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(grid), gl.STATIC_DRAW);
 
     colorLoc = gl.getUniformLocation(gridProgram, "vColor")
@@ -171,25 +157,21 @@ window.onload = function init() {
 }
 
 function render() {
-    toDrawData(program, bufferId, "vTimeSample", 1);
     gl.clear(gl.COLOR_BUFFER_BIT);
+    toDrawData(program, bufferId, "vTimeSample", 1);
     // gl.lineWidth(2.5);
 
-    gl.uniform1i(funcLoc, currentFunction);
-
-    gl.uniform1f(ampLoc, currentAmp);
-    gl.uniform1f(phaseLoc, currentPhase);
     gl.uniform1f(timeLoc, time);
     gl.uniform1f(vScaleLoc, currentVScale);
     gl.uniform1f(hScaleLoc, currentHScale);
-    gl.uniform1i(numNLoc, nYnotes);
-    gl.uniform3fv(notesLoc, currentYNote);
+    gl.uniform3fv(notesLocY, currentYNote);
+    gl.uniform3fv(notesLocX, currentXNote);
 
-    time += .05;
+    time += 0.005;
 
     gl.drawArrays(gl.LINE_STRIP, 0, 10000);
 
-    toDrawData(gridProgram, bufferId1, "gPosition", 2);
+    toDrawData(gridProgram, gridBufferId, "gPosition", 2);
     gl.drawArrays(gl.LINES, 0, (HORIZONTAL_BLOCKS + VERTICAL_BLOCKS) * 2);
 
     requestAnimationFrame(render);
