@@ -1,5 +1,3 @@
-const SIN = 0;
-const COS = 1;
 const HORIZONTAL_BLOCKS = 12;
 const VERTICAL_BLOCKS = 8;
 
@@ -8,9 +6,9 @@ const STANDARD_VERTICAL_SCALE = 2.0 / VERTICAL_BLOCKS;
 
 /** @type {WebGLRenderingContext} */
 var gl;
-let currentFunction = SIN;
+let currentFunction = 0; // TODO
 let funcLoc, ampLoc, angFreqLoc, phaseLoc, vScaleLoc, hScaleLoc;
-let currentAmp = 1.0 /* V */, currentFreq = C0 /* Hz */, currentPhase = 1.5, currentHScale = STANDARD_HORIZONTAL_SCALE, currentVScale = STANDARD_VERTICAL_SCALE;
+let currentAmp = 1.0 /* V */, currentYNote = C4 /* Hz */, currentPhase = 1.5, currentHScale = STANDARD_HORIZONTAL_SCALE, currentVScale = STANDARD_VERTICAL_SCALE;
 
 let timeLoc;
 let time = 0;
@@ -40,29 +38,49 @@ $horizontalScaleSelector.addEventListener("change", e = () => {
     currentHScale = getHorizontalScale(parseFloat($horizontalScaleSelector.options[$horizontalScaleSelector.selectedIndex].value, 10));
 });
 
-let $frequencySlider = document.getElementById('frequency-slider');
-$frequencySlider.oninput = () => {
-    console.log($frequencySlider.value);
-    currentFreq = $frequencySlider.value;
-};
-
-let $phaseSlider = document.getElementById('phase-slider');
-$phaseSlider.oninput = () => {
-    console.log($phaseSlider.value);
-    currentPhase = $phaseSlider.value;
-};
-
-let $selectFunc = document.getElementById('select-func');
-$selectFunc.addEventListener("change", e => {
-    value = $selectFunc.options[$selectFunc.selectedIndex].value;
-    console.log($selectFunc.options[$selectFunc.selectedIndex].value);
+let $xNoteSelector = document.getElementById('x-note-selector');
+$xNoteSelector.addEventListener("change", e => {
+    value = $xNoteSelector.options[$xNoteSelector.selectedIndex].value;
+    console.log($xNoteSelector.options[$xNoteSelector.selectedIndex].value);
 
     switch (value) {
-        case "sin":
-            currentFunction = SIN;
+        case "time":
+            currentXNote = time;
             break;
-        case "cos":
-            currentFunction = COS;
+        case "zero":
+            currentXNote = 0;
+            break;
+        case "C4":
+            currentXNote = [C4];
+            break;
+        case "C4M":
+            currentXNote = [C4, G4, E4];
+            break;
+        case "F4F4#":
+            currentXNote = [F4, FSHARP4];
+            break;
+        default:
+            break;
+    }
+});
+
+let $yNoteSelector = document.getElementById('x-note-selector');
+$xNoteSelector.addEventListener("change", e => {
+    value = $xNoteSelector.options[$xNoteSelector.selectedIndex].value;
+    console.log($xNoteSelector.options[$xNoteSelector.selectedIndex].value);
+
+    switch (value) {
+        case "zero":
+            currentYNote = 0;
+            break;
+        case "C4":
+            currentYNote = [C4];
+            break;
+        case "C4M":
+            currentYNote = [C4, G4, E4];
+            break;
+        case "F4F4#":
+            currentYNote = [F4, FSHARP4];
             break;
         default:
             break;
@@ -147,12 +165,12 @@ window.onload = function init() {
 function render() {
     toDrawData(program, bufferId, "vTimeSample", 1);
     gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.lineWidth(2.5);
-    
+    // gl.lineWidth(2.5);
+
     gl.uniform1i(funcLoc, currentFunction);
 
     gl.uniform1f(ampLoc, currentAmp);
-    gl.uniform1f(angFreqLoc, 2 * Math.PI * currentFreq);
+    gl.uniform1f(angFreqLoc, 2 * Math.PI * currentYNote);
     gl.uniform1f(phaseLoc, currentPhase);
     gl.uniform1f(timeLoc, time);
     gl.uniform1f(vScaleLoc, currentVScale);
