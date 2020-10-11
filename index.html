@@ -1,6 +1,47 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <script id="xy-vertex-shader" type="x-shader/x-vertex">
+      attribute float vTimeSample;
+      uniform int func;
+
+      uniform float amp;
+      uniform float angFreqX;
+      uniform float angFreqY;
+      uniform float phase;
+
+      uniform float time;
+
+      uniform float vScale;
+      uniform float hScale;
+
+      float normalizeInput(float value, float inMin, float inMax, float outMin, float outMax) {
+        return outMin + (outMax - outMin) * (value - inMin) / (inMax - inMin);
+      }
+
+      float getImage(float x) {
+        if (func == 0) {
+          return vScale * amp * sin(angFreqX * hScale * (x+time) + phase);
+        }
+      }
+
+      float getImageY(float x) {
+        if (func == 0) {
+          return vScale * amp * sin(angFreqY * hScale * (x+time) + phase);
+        } 
+      }
+
+      void main(){
+        float fx = normalizeInput(vTimeSample, 0.0, 9999.0, -1.0, 1.0);
+        float fy = getImage(fx);
+        float lx = normalizeInput(vTimeSample, 0.0, 9999.0, -1.0, 1.0);
+        float ly = getImageY(lx);
+          gl_Position.x = fy;//getImage(vTimeSample); // normalize [0, 9999] -> [-1, 1]
+          gl_Position.y = ly;//getImageY(vTimeSample);
+          // gl_Position.z = 0.0;
+          gl_Position.a = 1.0;
+      }
+    </script>
     <script id="vertex-shader" type="x-shader/x-vertex">
       attribute float vTimeSample;
       uniform int func;
@@ -97,9 +138,9 @@
       <option value="0.01">1e-2 s</option>
       <option value="0.02">2e-2 s</option>
       <option value="0.05">5e-2 s</option>
-      <option value="0.1">1e-1 s</option>
-      <option value="0.2">2e-1 s</option>
-      <option value="0.5">5e-1 s</option>
+      <option value="0.1">0.1 s</option>
+      <option value="0.2">0.2 s</option>
+      <option value="0.5">0.5 s</option>
       <option value="1.0" selected="selected">1 s</option>
       <option value="2.0">2 s</option>
       <option value="5.0">5 s</option>

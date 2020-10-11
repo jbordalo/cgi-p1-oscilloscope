@@ -184,7 +184,8 @@ function render() {
     gl.uniform1f(hScaleLoc, currentHScale);
     gl.uniform1i(numNLoc, nYnotes);
     gl.uniform3fv(notesLoc, currentYNote);
-    time += .00;
+
+    time += .05;
 
     gl.drawArrays(gl.LINE_STRIP, 0, 10000);
 
