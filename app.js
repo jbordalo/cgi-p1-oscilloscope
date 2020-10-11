@@ -7,8 +7,10 @@ const STANDARD_VERTICAL_SCALE = 2.0 / VERTICAL_BLOCKS;
 /** @type {WebGLRenderingContext} */
 var gl;
 let currentFunction = 0; // TODO
-let funcLoc, ampLoc, angFreqLoc, phaseLoc, vScaleLoc, hScaleLoc;
-let currentAmp = 1.0 /* V */, currentYNote = C4 /* Hz */, currentPhase = 1.5, currentHScale = STANDARD_HORIZONTAL_SCALE, currentVScale = STANDARD_VERTICAL_SCALE;
+let funcLoc, ampLoc, phaseLoc, vScaleLoc, hScaleLoc;
+let currentAmp = 1.0 /* V */, currentYNote = vec3(C4,0.0,0.0) /* Hz */, currentPhase = 1.5, currentHScale = STANDARD_HORIZONTAL_SCALE, currentVScale = STANDARD_VERTICAL_SCALE;
+let nYnotes = 1;
+let notesLoc, numNLoc;
 
 let timeLoc;
 let time = 0;
@@ -64,23 +66,27 @@ $xNoteSelector.addEventListener("change", e => {
     }
 });
 
-let $yNoteSelector = document.getElementById('x-note-selector');
-$xNoteSelector.addEventListener("change", e => {
-    value = $xNoteSelector.options[$xNoteSelector.selectedIndex].value;
-    console.log($xNoteSelector.options[$xNoteSelector.selectedIndex].value);
+let $yNoteSelector = document.getElementById('y-note-selector');
+$yNoteSelector.addEventListener("change", e => {
+    value = $yNoteSelector.options[$yNoteSelector.selectedIndex].value;
+    console.log($yNoteSelector.options[$yNoteSelector.selectedIndex].value);
 
     switch (value) {
         case "zero":
-            currentYNote = 0;
+            currentYNote = vec3(0.0,0.0,0.0);
+            nYnotes = 0;
             break;
         case "C4":
-            currentYNote = [C4];
+            currentYNote = vec3(C4,0.0,0.0);
+            nYnotes = 1;
             break;
         case "C4M":
-            currentYNote = [C4, G4, E4];
+            currentYNote = vec3(C4, G4, E4);
+            nYnotes = 3;
             break;
         case "F4F4#":
-            currentYNote = [F4, FSHARP4];
+            currentYNote = vec3(F4, FSHARP4,0.0);
+            nYnotes = 2;
             break;
         default:
             break;
@@ -140,14 +146,16 @@ window.onload = function init() {
 
     funcLoc = gl.getUniformLocation(program, 'func');
     ampLoc = gl.getUniformLocation(program, 'amp');
-    angFreqLoc = gl.getUniformLocation(program, 'angFreq');
     phaseLoc = gl.getUniformLocation(program, 'phase');
     let colorLoc = gl.getUniformLocation(program, "vColor")
     gl.uniform4fv(colorLoc, vec4(0.0, 1.0, 1.0, 1.0));
     vScaleLoc = gl.getUniformLocation(program, "vScale");
     hScaleLoc = gl.getUniformLocation(program, "hScale");
-
+    
     timeLoc = gl.getUniformLocation(program, 'time');
+
+    notesLoc = gl.getUniformLocation(program, "notes");
+    numNLoc = gl.getUniformLocation(program,"numNotes");
 
     gridProgram = initShaders(gl, "grid-vertex-shader", "fragment-shader");
     bufferId1 = gl.createBuffer();
@@ -170,12 +178,12 @@ function render() {
     gl.uniform1i(funcLoc, currentFunction);
 
     gl.uniform1f(ampLoc, currentAmp);
-    gl.uniform1f(angFreqLoc, 2 * Math.PI * currentYNote);
     gl.uniform1f(phaseLoc, currentPhase);
     gl.uniform1f(timeLoc, time);
     gl.uniform1f(vScaleLoc, currentVScale);
     gl.uniform1f(hScaleLoc, currentHScale);
-
+    gl.uniform1i(numNLoc, nYnotes);
+    gl.uniform3fv(notesLoc, currentYNote);
     time += .00;
 
     gl.drawArrays(gl.LINE_STRIP, 0, 10000);
