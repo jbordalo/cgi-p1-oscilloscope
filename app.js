@@ -53,6 +53,8 @@ function pickNote(value) {
             return vec3(0.0, 0.0, 0.0);
         case "C4":
             return vec3(C4, 0.0, 0.0);
+        case "G4":
+            return vec3(G4, 0.0, 0.0);
         case "C4M":
             return vec3(C4, G4, E4);
         case "F4F4#":
@@ -172,12 +174,12 @@ function render() {
     // // time += (1 / 60);
     let step = 10000 / renderTimes;
     current += step;
-    if(current > 10000) { current = 10000; }
+    if (current > 10000) { current = 10000; }
     gl.drawArrays(gl.LINE_STRIP, 0, current);
     if (current == 10000) {
-         time += 1.0;
-         console.log(time);
-         current = 0;
+        time += 1.0;
+        console.log(time);
+        current = 0;
     }
 
 

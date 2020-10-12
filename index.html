@@ -21,7 +21,7 @@
       float getImage(float x) {
         float result = 0.0;
         for(int i = 0; i < 3; i++){
-          if(notesX[i] != 0.0){
+          if(notesX[i] != 0.0) {
             result += vScale*amp*sin(2.0 * 3.1415926535 * notesX[i] * hScale * (x+0.0) + phase);
           } else {
             break;
@@ -46,7 +46,7 @@
         if (notesX[0] == 0.0) {
           gl_Position.x = normalizeInput(vTimeSample,0.0,9999.0,-1.0,1.0);
         } else {
-          gl_Position.x = getImage(normalizeInput(vTimeSample,0.0,9999.0,-1.0,1.0));//getImage(vTimeSample); // normalize [0, 9999] -> [-1, 1]
+          gl_Position.x = getImage(normalizeInput(vTimeSample+time*10000.0,0.0,9999.0,-1.0,1.0));//getImage(vTimeSample); // normalize [0, 9999] -> [-1, 1]
         }
         gl_Position.y = getImageY(normalizeInput((vTimeSample+time*10000.0),0.0,9999.0,-1.0,1.0));//getImageY(vTimeSample);
         // gl_Position.z = 0.0;
@@ -96,6 +96,7 @@
     <label>Y-Signal</label>
     <select id="y-note-selector">
       <option value="C4" selected="selected">C4</option>
+      <option value="G4">G4</option>
       <option value="C4M">C4 Major</option>
       <option value="F4F4#">F4 + F4#</option>
       <option value="zero">Zero</option>
@@ -124,6 +125,7 @@
     <select id="x-note-selector">
       <option value="time" selected="selected">Time</option>
       <option value="C4">C4</option>
+      <option value="G4">G4</option>
       <option value="C4M">C4 Major</option>
       <option value="F4F4#">F4 + F4#</option>
     </select>
