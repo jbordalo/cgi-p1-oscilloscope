@@ -5,7 +5,7 @@ const STANDARD_HORIZONTAL_SCALE = 72.0 / HORIZONTAL_BLOCKS;
 const STANDARD_VERTICAL_SCALE = 2.0 / VERTICAL_BLOCKS;
 
 const DEFAULT_AMPLITUDE = 1.0;
-const DEFAULT_PHASE = 1.5;
+const DEFAULT_PHASE = 0.0;
 
 let $verticalScaleSelector = document.getElementById('vertical-scale-selector');
 let $horizontalScaleSelector = document.getElementById('horizontal-scale-selector');
@@ -20,6 +20,7 @@ let notesLocY, notesLocX;
 
 let timeLoc;
 let time = 0;
+let current = 0;
 
 let gridProgram;
 let program;
@@ -166,10 +167,19 @@ function render() {
     gl.uniform1f(hScaleLoc, currentHScale);
     gl.uniform3fv(notesLocY, currentYNote);
     gl.uniform3fv(notesLocX, currentXNote);
+    let timeToRender = HORIZONTAL_BLOCKS * (currentHScale / STANDARD_HORIZONTAL_SCALE);
+    let renderTimes = timeToRender / (1 / 60);
+    // // time += (1 / 60);
+    let step = 10000 / renderTimes;
+    current += step;
+    if(current > 10000) { current = 10000; }
+    gl.drawArrays(gl.LINE_STRIP, 0, current);
+    if (current == 10000) {
+         time += 1.0;
+         console.log(time);
+         current = 0;
+    }
 
-    time += 0.005;
-
-    gl.drawArrays(gl.LINE_STRIP, 0, 10000);
 
     toDrawData(gridProgram, gridBufferId, "gPosition", 2);
     gl.drawArrays(gl.LINES, 0, (HORIZONTAL_BLOCKS + VERTICAL_BLOCKS) * 2);

@@ -22,7 +22,7 @@
         float result = 0.0;
         for(int i = 0; i < 3; i++){
           if(notesX[i] != 0.0){
-            result += vScale*amp*sin(2.0 * 3.141592 * notesX[i] * hScale * (x+time) + phase);
+            result += vScale*amp*sin(2.0 * 3.1415926535 * notesX[i] * hScale * (x+0.0) + phase);
           } else {
             break;
           }
@@ -34,7 +34,7 @@
         float result = 0.0;
         for(int i = 0; i < 3; i++){
           if(notesY[i] != 0.0){
-            result += vScale*amp*sin(2.0 * 3.141592 * notesY[i] * hScale * (x+time) + phase);
+            result += vScale*amp*sin(2.0 * 3.1415926535 * notesY[i] * hScale * (x+0.0) + phase);
           } else {
             break;
           }
@@ -48,7 +48,7 @@
         } else {
           gl_Position.x = getImage(normalizeInput(vTimeSample,0.0,9999.0,-1.0,1.0));//getImage(vTimeSample); // normalize [0, 9999] -> [-1, 1]
         }
-        gl_Position.y = getImageY(normalizeInput(vTimeSample,0.0,9999.0,-1.0,1.0));//getImageY(vTimeSample);
+        gl_Position.y = getImageY(normalizeInput((vTimeSample+time*10000.0),0.0,9999.0,-1.0,1.0));//getImageY(vTimeSample);
         // gl_Position.z = 0.0;
         gl_Position.a = 1.0;
       }
@@ -74,7 +74,7 @@
 
   <body>
     <title>CGI - Oscilloscope</title>
-    <canvas id="gl-canvas" width="1080" height="720">
+    <canvas id="gl-canvas" width="940" height="720">
       Oops... your browser doesn't support the HTML5 canvas element"
     </canvas>
     <br />
