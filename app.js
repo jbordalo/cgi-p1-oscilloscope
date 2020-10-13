@@ -1,11 +1,8 @@
 const HORIZONTAL_BLOCKS = 12;
 const VERTICAL_BLOCKS = 8;
 
-const STANDARD_HORIZONTAL_SCALE = 8.0 / HORIZONTAL_BLOCKS; // Was 72, changed to 8.0
-const STANDARD_VERTICAL_SCALE = 2.0 / VERTICAL_BLOCKS;
-
 const DEFAULT_AMPLITUDE = 1.0;
-const DEFAULT_PHASE = 0.0;
+const DEFAULT_PHASE = 1.0;
 
 let $verticalScaleSelector = document.getElementById('vertical-scale-selector');
 let $horizontalScaleSelector = document.getElementById('horizontal-scale-selector');
@@ -15,7 +12,9 @@ let $yNoteSelector = document.getElementById('y-note-selector');
 /** @type {WebGLRenderingContext} */
 let gl;
 let vScaleLoc, hScaleLoc;
-let currentYNote = vec3(C4, 0.0, 0.0), currentXNote = vec3(0.0, 0.0, 0.0), currentHScale = getHorizontalScale(parseFloat($horizontalScaleSelector.options[$horizontalScaleSelector.selectedIndex].value, 10)), currentVScale = STANDARD_VERTICAL_SCALE;
+let currentYNote = vec3(C4, 0.0, 0.0), currentXNote = vec3(0.0, 0.0, 0.0),
+    currentHScale = getHorizontalScale(parseFloat($horizontalScaleSelector.options[$horizontalScaleSelector.selectedIndex].value, 10)),
+    currentVScale = getVerticalScale(parseFloat($verticalScaleSelector.options[$verticalScaleSelector.selectedIndex].value, 10));
 let notesLocY, notesLocX;
 
 let timeLoc;
@@ -29,11 +28,11 @@ let bufferId;
 let gridBufferId;
 
 function getVerticalScale(voltsPerBlock) {
-    return STANDARD_VERTICAL_SCALE / voltsPerBlock;
+    return voltsPerBlock;
 }
 
 function getHorizontalScale(secondsPerBlock) {
-    return (STANDARD_HORIZONTAL_SCALE * secondsPerBlock);
+    return secondsPerBlock;
 }
 
 $verticalScaleSelector.addEventListener("change", e = () => {
@@ -165,23 +164,40 @@ function render() {
     // gl.lineWidth(2.5);
 
     gl.uniform1f(timeLoc, time);
-    gl.uniform1f(vScaleLoc, currentVScale);
-    gl.uniform1f(hScaleLoc, currentHScale);
+    gl.uniform1f(vScaleLoc, 0.25 / currentVScale);
+    console.log("vScale: " + 0.25 / currentVScale);
+    gl.uniform1f(hScaleLoc, currentHScale * 6);
+    console.log("hScale: " + currentHScale * 6);
     gl.uniform3fv(notesLocY, currentYNote);
     gl.uniform3fv(notesLocX, currentXNote);
-    let timeToRender = HORIZONTAL_BLOCKS * (currentHScale / STANDARD_HORIZONTAL_SCALE);
+
+    let timeToRender = HORIZONTAL_BLOCKS * (currentHScale);
     let renderTimes = timeToRender / (1 / 60);
-    // // time += (1 / 60);
-    let step = 10000 / renderTimes;
-    current += step;
-    if (current > 10000) { current = 10000; }
-    gl.drawArrays(gl.LINE_STRIP, 0, current);
-    if (current == 10000) {
-        time += 1.0;
-        console.log(time);
-        current = 0;
+
+    // #div * tmp => escala
+    // tempo, escala, espaço ecrã:
+
+    let t = HORIZONTAL_BLOCKS * currentHScale;
+
+    if (t < 1 / 60) {
+        gl.drawArrays(gl.LINE_STRIP, 0, current);
+    } else {
+        let step = 10000 / renderTimes;
+        current += step;
+        if (current > 10000) { current = 10000; }
+        gl.drawArrays(gl.LINE_STRIP, 0, current);
+        if (current == 10000) {
+            time += 1.0;
+            console.log(time);
+            current = 0;
+        }
     }
 
+    // espaço ecrã, 10000 fit or not enough??
+
+    // [-1,1] map=> blocos consoante a escala, what fits?
+
+    // // time += (1 / 60);
 
     toDrawData(gridProgram, gridBufferId, "gPosition", 2);
     gl.drawArrays(gl.LINES, 0, (HORIZONTAL_BLOCKS + VERTICAL_BLOCKS) * 2);

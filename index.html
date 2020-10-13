@@ -6,7 +6,7 @@
 
       uniform float amp;
       uniform float phase;
-      uniform vec3 notesX;
+      uniform vec3 notesX; // freqs
       uniform vec3 notesY;
 
       uniform float time;
@@ -19,10 +19,15 @@
       }
 
       float getImage(float x) {
+        float secondsPerBlock = hScale / 6.0;
+        float voltsPerBlock = 0.25 / vScale;
+        float newHScale =  voltsPerBlock / .25;
+        float newVScale = secondsPerBlock / 6.0;
+
         float result = 0.0;
         for(int i = 0; i < 3; i++){
           if(notesX[i] != 0.0) {
-            result += vScale*amp*sin(2.0 * 3.1415926535 * notesX[i] * hScale * (x+0.0) + phase);
+            result += newVScale*amp*sin(2.0 * 3.1415926535 * notesX[i] * newHScale * x + phase);
           } else {
             break;
           }
@@ -34,7 +39,7 @@
         float result = 0.0;
         for(int i = 0; i < 3; i++){
           if(notesY[i] != 0.0){
-            result += vScale*amp*sin(2.0 * 3.1415926535 * notesY[i] * hScale * (x+0.0) + phase);
+            result += vScale*amp*sin(2.0 * 3.1415926535 * notesY[i] * hScale * x + phase);
           } else {
             break;
           }
@@ -46,7 +51,7 @@
         if (notesX[0] == 0.0) {
           gl_Position.x = normalizeInput(vTimeSample,0.0,9999.0,-1.0,1.0);
         } else {
-          gl_Position.x = getImage(normalizeInput(vTimeSample+time*10000.0,0.0,9999.0,-1.0,1.0));//getImage(vTimeSample); // normalize [0, 9999] -> [-1, 1]
+          gl_Position.x = getImage(normalizeInput((vTimeSample+time*10000.0),0.0,9999.0,-1.0,1.0));//getImage(vTimeSample); // normalize [0, 9999] -> [-1, 1]
         }
         gl_Position.y = getImageY(normalizeInput((vTimeSample+time*10000.0),0.0,9999.0,-1.0,1.0));//getImageY(vTimeSample);
         // gl_Position.z = 0.0;
