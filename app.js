@@ -14,8 +14,8 @@ let $wave2yNoteSelector = document.getElementById('wave2-y-note-selector');
 let gl;
 
 let currentYNoteWave1 = vec3(C4, 0.0, 0.0), currentYNoteWave2 = vec3(0.0, 0.0, 0.0, 0.0), currentXNote = vec3(0.0, 0.0, 0.0),
-    currentHScale = getHorizontalScale(parseFloat($horizontalScaleSelector.options[$horizontalScaleSelector.selectedIndex].value, 10)),
-    currentVScale = getVerticalScale(parseFloat($verticalScaleSelector.options[$verticalScaleSelector.selectedIndex].value, 10));
+    secondsPerBlock = getHorizontalScale(parseFloat($horizontalScaleSelector.options[$horizontalScaleSelector.selectedIndex].value, 10)),
+    voltsPerBlock = getVerticalScale(parseFloat($verticalScaleSelector.options[$verticalScaleSelector.selectedIndex].value, 10));
 
 let vScaleLoc, hScaleLoc;
 let notesLocY, notesLocX;
@@ -40,12 +40,12 @@ function getHorizontalScale(secondsPerBlock) {
 
 $verticalScaleSelector.addEventListener("change", e = () => {
     console.log(parseFloat($verticalScaleSelector.value, 10));
-    currentVScale = getVerticalScale(parseFloat($verticalScaleSelector.options[$verticalScaleSelector.selectedIndex].value, 10));
+    voltsPerBlock = getVerticalScale(parseFloat($verticalScaleSelector.options[$verticalScaleSelector.selectedIndex].value, 10));
 });
 
 $horizontalScaleSelector.addEventListener("change", e = () => {
     console.log(parseFloat($horizontalScaleSelector.value, 10));
-    currentHScale = getHorizontalScale(parseFloat($horizontalScaleSelector.options[$horizontalScaleSelector.selectedIndex].value, 10));
+    secondsPerBlock = getHorizontalScale(parseFloat($horizontalScaleSelector.options[$horizontalScaleSelector.selectedIndex].value, 10));
 });
 
 function pickNote(value) {
@@ -184,20 +184,20 @@ function render() {
 
     gl.uniform1f(timeLoc, time);
     gl.uniform4fv(colorLoc, vec4(0.0, 1.0, 1.0, 1.0));
-    gl.uniform1f(vScaleLoc, 0.25 / currentVScale);
-   // console.log("vScale: " + 0.25 / currentVScale);
-    gl.uniform1f(hScaleLoc, currentHScale * 6);
-    //console.log("hScale: " + currentHScale * 6);
+    gl.uniform1f(vScaleLoc, 0.25 / voltsPerBlock);
+   // console.log("vScale: " + 0.25 / voltsPerBlock);
+    gl.uniform1f(hScaleLoc, secondsPerBlock * 6);
+    //console.log("hScale: " + secondsPerBlock * 6);
     gl.uniform3fv(notesLocY, currentYNoteWave1);
     gl.uniform3fv(notesLocX, currentXNote);
 
-    let timeToRender = HORIZONTAL_BLOCKS * (currentHScale);
+    let timeToRender = HORIZONTAL_BLOCKS * (secondsPerBlock);
     let renderTimes = timeToRender / (1 / 60);
 
     // #div * tmp => escala
     // tempo, escala, espaço ecrã:
 
-    let t = HORIZONTAL_BLOCKS * currentHScale;
+    let t = HORIZONTAL_BLOCKS * secondsPerBlock;
 
     if (t < 1 / 60) {
         drawWaves(10000);
