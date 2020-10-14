@@ -7,17 +7,20 @@ const DEFAULT_PHASE = 1.0;
 let $verticalScaleSelector = document.getElementById('vertical-scale-selector');
 let $horizontalScaleSelector = document.getElementById('horizontal-scale-selector');
 let $xNoteSelector = document.getElementById('x-note-selector');
-let $yNoteSelector = document.getElementById('y-note-selector');
+let $wave1yNoteSelector = document.getElementById('wave1-y-note-selector');
+let $wave2yNoteSelector = document.getElementById('wave2-y-note-selector');
 
 /** @type {WebGLRenderingContext} */
 let gl;
-let vScaleLoc, hScaleLoc;
-let currentYNote = vec3(C4, 0.0, 0.0), currentXNote = vec3(0.0, 0.0, 0.0),
+
+let currentYNoteWave1 = vec3(C4, 0.0, 0.0), currentYNoteWave2 = vec3(0.0, 0.0, 0.0, 0.0), currentXNote = vec3(0.0, 0.0, 0.0),
     currentHScale = getHorizontalScale(parseFloat($horizontalScaleSelector.options[$horizontalScaleSelector.selectedIndex].value, 10)),
     currentVScale = getVerticalScale(parseFloat($verticalScaleSelector.options[$verticalScaleSelector.selectedIndex].value, 10));
-let notesLocY, notesLocX;
 
-let timeLoc;
+let vScaleLoc, hScaleLoc;
+let notesLocY, notesLocX;
+let timeLoc, colorLoc;
+
 let time = 0;
 let current = 0;
 
@@ -70,11 +73,19 @@ $xNoteSelector.addEventListener("change", e => {
     currentXNote = pickNote(value);
 });
 
-$yNoteSelector.addEventListener("change", e => {
-    value = $yNoteSelector.options[$yNoteSelector.selectedIndex].value;
-    console.log($yNoteSelector.options[$yNoteSelector.selectedIndex].value);
+$wave1yNoteSelector.addEventListener("change", e => {
+    value = $wave1yNoteSelector.options[$wave1yNoteSelector.selectedIndex].value;
+    console.log($wave1yNoteSelector.options[$wave1yNoteSelector.selectedIndex].value);
 
-    currentYNote = pickNote(value);
+    currentYNoteWave1 = pickNote(value);
+});
+
+
+$wave2yNoteSelector.addEventListener("change", e => {
+    value = $wave2yNoteSelector.options[$wave2yNoteSelector.selectedIndex].value;
+    console.log($wave2yNoteSelector.options[$wave2yNoteSelector.selectedIndex].value);
+
+    currentYNoteWave2 = pickNote(value);
 });
 
 function genNumbers() {
@@ -109,6 +120,15 @@ function toDrawData(program, bufferId, attr, size) {
     gl.enableVertexAttribArray(loc);
 }
 
+function drawWaves(current){
+    gl.drawArrays(gl.LINE_STRIP, 0, current);
+    if(currentYNoteWave2[0] != 0.0){
+        gl.uniform4fv(colorLoc, vec4(0.0, 0.0, 1.0, 1.0));
+        gl.uniform3fv(notesLocY, currentYNoteWave2);
+        gl.drawArrays(gl.LINE_STRIP, 0, current);
+    }
+}
+
 window.onload = function init() {
     var canvas = document.getElementById("gl-canvas");
     gl = WebGLUtils.setupWebGL(canvas);
@@ -132,8 +152,7 @@ window.onload = function init() {
     gl.uniform1f(ampLoc, DEFAULT_AMPLITUDE);
     let phaseLoc = gl.getUniformLocation(program, 'phase');
     gl.uniform1f(phaseLoc, DEFAULT_PHASE);
-    let colorLoc = gl.getUniformLocation(program, "vColor")
-    gl.uniform4fv(colorLoc, vec4(0.0, 1.0, 1.0, 1.0));
+    colorLoc = gl.getUniformLocation(program, "vColor")
     vScaleLoc = gl.getUniformLocation(program, "vScale");
     hScaleLoc = gl.getUniformLocation(program, "hScale");
 
@@ -152,8 +171,8 @@ window.onload = function init() {
     gl.bindBuffer(gl.ARRAY_BUFFER, gridBufferId);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(grid), gl.STATIC_DRAW);
 
-    colorLoc = gl.getUniformLocation(gridProgram, "vColor")
-    gl.uniform4fv(colorLoc, vec4(1.0, 0.0, 1.0, 1.0));
+    let gridColorLoc = gl.getUniformLocation(gridProgram, "vColor")
+    gl.uniform4fv(gridColorLoc, vec4(1.0, 0.0, 1.0, 1.0));
 
     render();
 }
@@ -164,11 +183,12 @@ function render() {
     // gl.lineWidth(2.5);
 
     gl.uniform1f(timeLoc, time);
+    gl.uniform4fv(colorLoc, vec4(0.0, 1.0, 1.0, 1.0));
     gl.uniform1f(vScaleLoc, 0.25 / currentVScale);
-    console.log("vScale: " + 0.25 / currentVScale);
+   // console.log("vScale: " + 0.25 / currentVScale);
     gl.uniform1f(hScaleLoc, currentHScale * 6);
-    console.log("hScale: " + currentHScale * 6);
-    gl.uniform3fv(notesLocY, currentYNote);
+    //console.log("hScale: " + currentHScale * 6);
+    gl.uniform3fv(notesLocY, currentYNoteWave1);
     gl.uniform3fv(notesLocX, currentXNote);
 
     let timeToRender = HORIZONTAL_BLOCKS * (currentHScale);
@@ -180,12 +200,12 @@ function render() {
     let t = HORIZONTAL_BLOCKS * currentHScale;
 
     if (t < 1 / 60) {
-        gl.drawArrays(gl.LINE_STRIP, 0, current);
+        drawWaves(10000);
     } else {
         let step = 10000 / renderTimes;
         current += step;
         if (current > 10000) { current = 10000; }
-        gl.drawArrays(gl.LINE_STRIP, 0, current);
+        drawWaves(current);
         if (current == 10000) {
             time += 1.0;
             console.log(time);
