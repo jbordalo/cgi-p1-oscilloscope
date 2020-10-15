@@ -2,32 +2,29 @@
 <html>
   <head>
     <script id="vertex-shader" type="x-shader/x-vertex">
+      #define PI 3.1415926535897932384626433832795
+
       attribute float vTimeSample;
 
       uniform float amp;
       uniform float phase;
-      uniform vec3 notesX; // freqs
-      uniform vec3 notesY;
+      uniform vec3 notesX; // frequency of the notes on the x axis
+      uniform vec3 notesY; // frequency of the notes on the y axis
 
       uniform float time;
 
-      uniform float vScale;
-      uniform float hScale;
+      uniform float voltsPerBlock;
+      uniform float secondsPerBlock;
 
-      float normalizeInput(float value, float inMin, float inMax, float outMin, float outMax) {
-        return outMin + (outMax - outMin) * (value - inMin) / (inMax - inMin);
+      float normalizeInput(float value) {
+        return -1.0 + 2.0 * (value) / (9999.0);
       }
 
       float getImage(float x) {
-        float secondsPerBlock = hScale / 6.0;
-        float voltsPerBlock = 0.25 / vScale;
-        float newHScale =  voltsPerBlock / .25;
-        float newVScale = secondsPerBlock / 6.0;
-
         float result = 0.0;
         for(int i = 0; i < 3; i++) {
           if(notesX[i] != 0.0) {
-            result += amp*sin(2.0 * 3.1415926535 * notesX[i] * x + phase);
+            result += amp*sin(2.0 * PI * notesX[i] * x + phase);
           } else {
             break;
           }
@@ -39,7 +36,7 @@
         float result = 0.0;
         for(int i = 0; i < 3; i++) {
           if(notesY[i] != 0.0){
-            result += 1.0*amp*sin(2.0 * 3.1415926535 * notesY[i] * 1.0 * x + phase);
+            result += amp*sin(2.0 * PI * notesY[i] * x + phase);
           } else {
             break;
           }
@@ -49,13 +46,11 @@
 
       void main() {
         if (notesX[0] == 0.0) {
-          //time = tInitial + vTimeSample/maxSamples*hDivisions*tDivision - tOffset;
-          gl_Position.x = normalizeInput(vTimeSample,0.0,9999.0,-1.0,1.0); // X = T
+          gl_Position.x = normalizeInput(vTimeSample); // x = t
         } else {
-          gl_Position.x = getImage(normalizeInput(vTimeSample+time*10000.0,0.0,9999.0,-1.0,1.0)) / 1.0; //aka ESCALAR ; // normalize [0, 9999] -> [-1, 1]
+          gl_Position.x = getImage(time + vTimeSample/10000.0*12.0*(secondsPerBlock)) / (0.5*12.0*(secondsPerBlock));
         }
-        gl_Position.y = getImageY(normalizeInput((vTimeSample+time*10000.0),0.0,9999.0,-1.0,1.0)) / 1.0;
-        // gl_Position.z = 0.0;
+        gl_Position.y = getImageY(time + vTimeSample/10000.0*12.0*(secondsPerBlock))*(0.25/voltsPerBlock);
         gl_Position.w = 1.0;
       }
     </script>

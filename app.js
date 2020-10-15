@@ -1,3 +1,5 @@
+const MAX_SAMPLES = 10000;
+
 const HORIZONTAL_BLOCKS = 12;
 const VERTICAL_BLOCKS = 8;
 
@@ -17,7 +19,7 @@ let currentYNoteWave1 = vec3(C4, 0.0, 0.0), currentYNoteWave2 = vec3(0.0, 0.0, 0
     secondsPerBlock = getHorizontalScale(parseFloat($horizontalScaleSelector.options[$horizontalScaleSelector.selectedIndex].value, 10)),
     voltsPerBlock = getVerticalScale(parseFloat($verticalScaleSelector.options[$verticalScaleSelector.selectedIndex].value, 10));
 
-let vScaleLoc, hScaleLoc;
+let voltsLoc, secondsLoc;
 let notesLocY, notesLocX;
 let timeLoc, colorLoc;
 
@@ -90,7 +92,7 @@ $wave2yNoteSelector.addEventListener("change", e => {
 
 function genNumbers() {
     let a = [];
-    for (let i = 0; i < 10000; i++) {
+    for (let i = 0; i < MAX_SAMPLES; i++) {
         a.push(i);
     }
     return a;
@@ -153,8 +155,8 @@ window.onload = function init() {
     let phaseLoc = gl.getUniformLocation(program, 'phase');
     gl.uniform1f(phaseLoc, DEFAULT_PHASE);
     colorLoc = gl.getUniformLocation(program, "vColor")
-    vScaleLoc = gl.getUniformLocation(program, "vScale");
-    hScaleLoc = gl.getUniformLocation(program, "hScale");
+    voltsLoc = gl.getUniformLocation(program, "voltsPerBlock");
+    secondsLoc = gl.getUniformLocation(program, "secondsPerBlock");
 
     timeLoc = gl.getUniformLocation(program, 'time');
 
@@ -180,13 +182,12 @@ window.onload = function init() {
 function render() {
     gl.clear(gl.COLOR_BUFFER_BIT);
     toDrawData(program, bufferId, "vTimeSample", 1);
-    // gl.lineWidth(2.5);
 
     gl.uniform1f(timeLoc, time);
     gl.uniform4fv(colorLoc, vec4(0.0, 1.0, 1.0, 1.0));
-    gl.uniform1f(vScaleLoc, 0.25 / voltsPerBlock);
+    gl.uniform1f(voltsLoc, voltsPerBlock);
     // console.log("vScale: " + 0.25 / voltsPerBlock);
-    gl.uniform1f(hScaleLoc, secondsPerBlock * 6);
+    gl.uniform1f(secondsLoc, secondsPerBlock);
     //console.log("hScale: " + secondsPerBlock * 6);
     gl.uniform3fv(notesLocY, currentYNoteWave1);
     gl.uniform3fv(notesLocX, currentXNote);
@@ -194,31 +195,20 @@ function render() {
     let timeToRender = HORIZONTAL_BLOCKS * (secondsPerBlock);
     let renderTimes = timeToRender / (1 / 60);
 
-    // #div * tmp => escala
-    // tempo, escala, espaço ecrã:
-
-    let t = HORIZONTAL_BLOCKS * secondsPerBlock;
-
-    if (t < 1 / 60) {
-        drawWaves(10000);
+    if (timeToRender < 1 / 60) {
+        drawWaves(MAX_SAMPLES);
         time += 1 / 60;
     } else {
-        let step = 10000 / renderTimes;
+        let step = MAX_SAMPLES / renderTimes;
         current += step;
-        if (current > 10000) { current = 10000; }
+        if (current > MAX_SAMPLES) { current = MAX_SAMPLES; }
         drawWaves(current);
-        if (current == 10000) {
-            time += renderTimes * (1 / 60);
+        if (current == MAX_SAMPLES) {
+            time += timeToRender;
             console.log(time);
             current = 0;
         }
     }
-
-    // espaço ecrã, 10000 fit or not enough??
-
-    // [-1,1] map=> blocos consoante a escala, what fits?
-
-    // // time += (1 / 60);
 
     toDrawData(gridProgram, gridBufferId, "gPosition", 2);
     gl.drawArrays(gl.LINES, 0, (HORIZONTAL_BLOCKS + VERTICAL_BLOCKS) * 2);
