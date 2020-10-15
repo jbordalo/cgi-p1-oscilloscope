@@ -29,8 +29,8 @@ let timeLoc, colorLoc;
 let time = 0;
 let current = 0;
 
-let gridProgram;
 let program;
+let gridProgram;
 
 let bufferId;
 let gridBufferId;
@@ -57,6 +57,7 @@ $horizontalScaleSlider.addEventListener("input", e = () => {
     secondsPerBlock = scale;
 });
 
+//Returns a vec3 with the notes regarding the note or chord given in value
 function pickNote(value) {
     switch (value) {
         case "time":
@@ -97,6 +98,7 @@ $wave2yNoteSelector.addEventListener("change", e => {
     currentYNoteWave2 = pickNote(value);
 });
 
+//Generates the sequence of numbers from 0 to MAX_SAMPLES
 function genNumbers() {
     let a = [];
     for (let i = 0; i < MAX_SAMPLES; i++) {
@@ -105,6 +107,7 @@ function genNumbers() {
     return a;
 }
 
+//Generates points to draw the grid
 function genGridPoints(vertical, horizontal) {
     let v = [];
     step = 2 / horizontal;
@@ -120,6 +123,8 @@ function genGridPoints(vertical, horizontal) {
     return v;
 }
 
+//Switches the program, binds the buffer,
+//preparing to draw the data using a different program.
 function toDrawData(program, bufferId, attr, size) {
     gl.useProgram(program);
     gl.bindBuffer(gl.ARRAY_BUFFER, bufferId);
@@ -129,6 +134,8 @@ function toDrawData(program, bufferId, attr, size) {
     gl.enableVertexAttribArray(loc);
 }
 
+//Draws one Wave or Two if the currentYNoteWave2 isn't 'empty' 
+//with current being the number of vertexes to draw.
 function drawWaves(current) {
     gl.drawArrays(gl.LINE_STRIP, 0, current);
     if (currentYNoteWave2[0] != 0.0) {
@@ -144,7 +151,7 @@ window.onload = function init() {
     if (!gl) { alert("WebGL isn't available"); }
 
     let times = genNumbers();
-
+    
     // Configure WebGL
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -173,13 +180,18 @@ window.onload = function init() {
     //
     // GRID PROGRAM
     //
+    // Load shaders and initialize attribute buffers
     gridProgram = initShaders(gl, "grid-vertex-shader", "fragment-shader");
     gridBufferId = gl.createBuffer();
+
+    //Generate grid points
     let grid = genGridPoints(HORIZONTAL_BLOCKS, VERTICAL_BLOCKS);
+
+     // Load the data into the GPU
     gl.useProgram(gridProgram);
     gl.bindBuffer(gl.ARRAY_BUFFER, gridBufferId);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(grid), gl.STATIC_DRAW);
-
+    
     let gridColorLoc = gl.getUniformLocation(gridProgram, "vColor")
     gl.uniform4fv(gridColorLoc, vec4(1.0, 0.0, 1.0, 1.0));
 
@@ -188,19 +200,22 @@ window.onload = function init() {
 
 function render() {
     gl.clear(gl.COLOR_BUFFER_BIT);
+    //Switch to program that draws the wave(s)
     toDrawData(program, bufferId, "vTimeSample", 1);
-
+    //Set the uniforms
     gl.uniform1f(timeLoc, time);
     gl.uniform4fv(colorLoc, vec4(0.0, 1.0, 1.0, 1.0));
     gl.uniform1f(voltsLoc, voltsPerBlock);
-    // console.log("vScale: " + 0.25 / voltsPerBlock);
     gl.uniform1f(secondsLoc, secondsPerBlock);
-    //console.log("hScale: " + secondsPerBlock * 6);
     gl.uniform3fv(notesLocY, currentYNoteWave1);
     gl.uniform3fv(notesLocX, currentXNote);
-
+    //Defining the time it should take to render the frame,
+    //considering the value per square  
     let timeToRender = HORIZONTAL_BLOCKS * (secondsPerBlock);
-    let renderTimes = timeToRender / (1 / 60);
+
+    //time it takes to render a frame multiplied by 60
+    //60 being the default frames rendered per second 
+    let renderTimes = timeToRender * 60;
 
     if (timeToRender < 1 / 60) {
         drawWaves(MAX_SAMPLES);
@@ -212,11 +227,10 @@ function render() {
         drawWaves(current);
         if (current == MAX_SAMPLES) {
             time += timeToRender;
-            // console.log(time);
             current = 0;
         }
     }
-
+    //Switches program to draw the grid
     toDrawData(gridProgram, gridBufferId, "gPosition", 2);
     gl.drawArrays(gl.LINES, 0, (HORIZONTAL_BLOCKS + VERTICAL_BLOCKS) * 2);
 

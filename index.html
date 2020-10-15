@@ -4,6 +4,8 @@
 <head>
   <script id="vertex-shader" type="x-shader/x-vertex">
       #define PI 3.1415926535897932384626433832795
+      #define HORIZONTAL_BLOCKS 12.0
+      #define VERTICAL_BLOCKS 8.0
 
       attribute float vTimeSample;
 
@@ -12,32 +14,19 @@
       uniform vec3 notesX; // frequency of the notes on the x axis
       uniform vec3 notesY; // frequency of the notes on the y axis
 
+      // time being the time recorded when the frame is fully drawn, 
+      // needed to continue drawing the wave on the right side of the window.
       uniform float time;
 
       uniform float voltsPerBlock;
       uniform float secondsPerBlock;
 
-      float normalizeInput(float value) {
-        return -1.0 + 2.0 * (value) / (9999.0);
-      }
-
-      float getImage(float x) {
+      //Returns the sum of the sines of the waves that make up a chord or a single note
+      float getImage(float x, vec3 notes) {
         float result = 0.0;
         for(int i = 0; i < 3; i++) {
-          if(notesX[i] != 0.0) {
-            result += amp*sin(2.0 * PI * notesX[i] * x + phase);
-          } else {
-            break;
-          }
-        }
-        return result;
-      }
-
-      float getImageY(float x) {
-        float result = 0.0;
-        for(int i = 0; i < 3; i++) {
-          if(notesY[i] != 0.0){
-            result += amp*sin(2.0 * PI * notesY[i] * x + phase);
+          if(notes[i] != 0.0){
+            result += amp*sin(2.0 * PI * notes[i] * x + phase);
           } else {
             break;
           }
@@ -46,12 +35,13 @@
       }
 
       void main() {
+        float timeNorm = time + vTimeSample/10000.0*HORIZONTAL_BLOCKS*(secondsPerBlock);
         if (notesX[0] == 0.0) {
-          gl_Position.x = normalizeInput(vTimeSample); // x = t
+          gl_Position.x = -1.0 + 2.0 * (vTimeSample) / (9999.0); // x = t
         } else {
-          gl_Position.x = getImage(time + vTimeSample/10000.0*12.0*(secondsPerBlock)) / (0.5*12.0*(secondsPerBlock));
+          gl_Position.x = getImage(timeNorm, notesX) / (0.5*HORIZONTAL_BLOCKS*(secondsPerBlock));
         }
-        gl_Position.y = getImageY(time + vTimeSample/10000.0*12.0*(secondsPerBlock))*(0.25/voltsPerBlock);
+        gl_Position.y = getImage(timeNorm, notesY) * (2.0/VERTICAL_BLOCKS/voltsPerBlock);
         gl_Position.w = 1.0;
       }
     </script>
