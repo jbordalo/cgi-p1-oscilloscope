@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <script id="vertex-shader" type="x-shader/x-vertex">
+
+<head>
+  <script id="vertex-shader" type="x-shader/x-vertex">
       #define PI 3.1415926535897932384626433832795
 
       attribute float vTimeSample;
@@ -54,91 +55,75 @@
         gl_Position.w = 1.0;
       }
     </script>
-    <script id="grid-vertex-shader" type="x-shader/x-vertex">
+  <script id="grid-vertex-shader" type="x-shader/x-vertex">
       attribute vec2 gPosition;
       void main(){
         gl_Position = vec4(gPosition, 0.0, 1.0);
       }
     </script>
-    <script id="fragment-shader" type="x-shader/x-fragment">
+  <script id="fragment-shader" type="x-shader/x-fragment">
       precision mediump float;
       uniform vec4 vColor;
       void main() {
           gl_FragColor = vColor;
       }
     </script>
-    <script type="text/javascript" src="Common/webgl-utils.js"></script>
-    <script type="text/javascript" src="Common/initShaders.js"></script>
-    <script type="text/javascript" src="Common/MV.js"></script>
-    <script type="text/javascript" src="notes.js"></script>
-  </head>
+  <script type="text/javascript" src="Common/webgl-utils.js"></script>
+  <script type="text/javascript" src="Common/initShaders.js"></script>
+  <script type="text/javascript" src="Common/MV.js"></script>
+  <script type="text/javascript" src="notes.js"></script>
+</head>
 
-  <body>
-    <title>CGI - Oscilloscope</title>
-    <canvas id="gl-canvas" width="940" height="720">
-      Oops... your browser doesn't support the HTML5 canvas element"
-    </canvas>
-    <br />
-    <label>Y-Scale: </label>
-    <select id="vertical-scale-selector">
-      <option value="0.1">0.1 V</option>
-      <option value="0.2">0.2 V</option>
-      <option value="0.5">0.5 V</option>
-      <option value="1.0" selected="selected">1.0 V</option>
-      <option value="2.0">2.0 V</option>
-      <option value="5.0">5.0 V</option>
-      <option value="10.0">10.0 V</option>
-      <option value="20.0">20.0 V</option>
-      <option value="50.0">50.0 V</option>
-      <option value="100.0">100.0 V</option>
-      <option value="200.0">200.0 V</option>
-      <option value="500.0">500.0 V</option>
-    </select>
-    <label>Y-Signal</label>
-    <label>Wave 1:</label>
-    <select id="wave1-y-note-selector">
-      <option value="C4" selected="selected">C4</option>
-      <option value="G4">G4</option>
-      <option value="C4M">C4 Major</option>
-      <option value="F4F4#">F4 + F4#</option>
-      <option value="zero">Zero</option>
-    </select>
-    <label>Wave 2:</label>
-    <select id="wave2-y-note-selector">
-      <option value="C4">C4</option>
-      <option value="C4M">C4 Major</option>
-      <option value="F4F4#">F4 + F4#</option>
-      <option value="zero" selected="selected">Zero</option>
-    </select>
-  </br>
-    <label>X-Scale:</label>
-    <select id="horizontal-scale-selector">
-      <option value="0.0001">1e-4 s</option>
-      <option value="0.0002"> 2e-4 s</option>
-      <option value="0.0005">5e-4 s</option>
-      <option value="0.001">1e-3 s</option>
-      <option value="0.002">2e-3 s</option>
-      <option value="0.005" selected="selected">5e-3 s</option>
-      <option value="0.01">1e-2 s</option>
-      <option value="0.02">2e-2 s</option>
-      <option value="0.05">5e-2 s</option>
-      <option value="0.1">0.1 s</option>
-      <option value="0.2">0.2 s</option>
-      <option value="0.5">0.5 s</option>
-      <option value="1.0">1 s</option>
-      <option value="2.0">2 s</option>
-      <option value="5.0">5 s</option>
-      <option value="10.0">10 s</option>
-    </select>
-    <label>X-Signal</label>
-    <select id="x-note-selector">
-      <option value="time" selected="selected">Time</option>
-      <option value="C4">C4</option>
-      <option value="G4">G4</option>
-      <option value="C4M">C4 Major</option>
-      <option value="F4F4#">F4 + F4#</option>
-    </select>
-    <br />
-  </body>
-  <script type="text/javascript" src="app.js"></script>
+<body>
+  <title>CGI - Oscilloscope</title>
+  <canvas id="gl-canvas" width="940" height="720">
+    Oops... your browser doesn't support the HTML5 canvas element"
+  </canvas>
+  <div id="wrapper" style="float: left;">
+    <div id="vertical-axis" style="float: left; margin-right: 20px;">
+      <label>Vertical Axis: </label>
+      </br>
+      <label>Y-Signal:</label> </br>
+      <label>Wave 1:</label>
+      <select id="wave1-y-note-selector">
+        <option value="C4" selected="selected">C4</option>
+        <option value="G4">G4</option>
+        <option value="C4M">C4 Major</option>
+        <option value="F4F4#">F4 + F4#</option>
+        <option value="zero">Zero</option>
+      </select>
+      </br>
+      <label>Wave 2:</label>
+      <select id="wave2-y-note-selector">
+        <option value="C4">C4</option>
+        <option value="G4">G4</option>
+        <option value="C4M">C4 Major</option>
+        <option value="F4F4#">F4 + F4#</option>
+        <option value="zero" selected="selected">Zero</option>
+      </select>
+      </br>
+      <label>volts/div</label>
+      <input id="vertical-scale-slider" type="range" min="0" max="11" step="1" value="3" /> <label
+        id="vertical-scale-label">1 V</label>
+    </div>
+    <div id="horizontal-axis" style="float: right;">
+      <label>Horizontal Axis:</label>
+      </br>
+      <label>X-Signal:</label> </br>
+      <select id="x-note-selector">
+        <option value="time" selected="selected">Time</option>
+        <option value="C4">C4</option>
+        <option value="G4">G4</option>
+        <option value="C4M">C4 Major</option>
+        <option value="F4F4#">F4 + F4#</option>
+      </select>
+      </br></br>
+      <label>seconds/div</label>
+      <input id="horizontal-scale-slider" type="range" min="0" max="14" step="1" value="5" /> <label
+        id="horizontal-scale-label">0.005 s</label>
+    </div>
+  </div>
+</body>
+<script type="text/javascript" src="app.js"></script>
+
 </html>

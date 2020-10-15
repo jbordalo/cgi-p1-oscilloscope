@@ -6,8 +6,11 @@ const VERTICAL_BLOCKS = 8;
 const DEFAULT_AMPLITUDE = 1.0;
 const DEFAULT_PHASE = 1.0;
 
-let $verticalScaleSelector = document.getElementById('vertical-scale-selector');
-let $horizontalScaleSelector = document.getElementById('horizontal-scale-selector');
+const VERTICAL_VALUES = [0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0, 200.0, 500.0];
+const HORIZONTAL_VALUES = [0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, .1, .2, .5, 1, 2, 5];
+
+let $verticalScaleSlider = document.getElementById('vertical-scale-slider');
+let $horizontalScaleSlider = document.getElementById('horizontal-scale-slider');
 let $xNoteSelector = document.getElementById('x-note-selector');
 let $wave1yNoteSelector = document.getElementById('wave1-y-note-selector');
 let $wave2yNoteSelector = document.getElementById('wave2-y-note-selector');
@@ -16,8 +19,8 @@ let $wave2yNoteSelector = document.getElementById('wave2-y-note-selector');
 let gl;
 
 let currentYNoteWave1 = vec3(C4, 0.0, 0.0), currentYNoteWave2 = vec3(0.0, 0.0, 0.0, 0.0), currentXNote = vec3(0.0, 0.0, 0.0),
-    secondsPerBlock = getHorizontalScale(parseFloat($horizontalScaleSelector.options[$horizontalScaleSelector.selectedIndex].value, 10)),
-    voltsPerBlock = getVerticalScale(parseFloat($verticalScaleSelector.options[$verticalScaleSelector.selectedIndex].value, 10));
+    secondsPerBlock = HORIZONTAL_VALUES[parseFloat($horizontalScaleSlider.value, 10)],
+    voltsPerBlock = VERTICAL_VALUES[parseFloat($verticalScaleSlider.value, 10)];
 
 let voltsLoc, secondsLoc;
 let notesLocY, notesLocX;
@@ -40,14 +43,18 @@ function getHorizontalScale(secondsPerBlock) {
     return secondsPerBlock;
 }
 
-$verticalScaleSelector.addEventListener("change", e = () => {
-    console.log(parseFloat($verticalScaleSelector.value, 10));
-    voltsPerBlock = getVerticalScale(parseFloat($verticalScaleSelector.options[$verticalScaleSelector.selectedIndex].value, 10));
+$verticalScaleSlider.addEventListener("input", e = () => {
+    const scale = VERTICAL_VALUES[parseFloat($verticalScaleSlider.value, 10)];
+    console.log(scale);
+    document.getElementById('vertical-scale-label').innerHTML = scale + " V";
+    voltsPerBlock = scale;
 });
 
-$horizontalScaleSelector.addEventListener("change", e = () => {
-    console.log(parseFloat($horizontalScaleSelector.value, 10));
-    secondsPerBlock = getHorizontalScale(parseFloat($horizontalScaleSelector.options[$horizontalScaleSelector.selectedIndex].value, 10));
+$horizontalScaleSlider.addEventListener("input", e = () => {
+    const scale = HORIZONTAL_VALUES[parseFloat($horizontalScaleSlider.value, 10)];
+    console.log(scale);
+    document.getElementById('horizontal-scale-label').innerHTML = scale + " s";
+    secondsPerBlock = scale;
 });
 
 function pickNote(value) {
@@ -205,7 +212,7 @@ function render() {
         drawWaves(current);
         if (current == MAX_SAMPLES) {
             time += timeToRender;
-            console.log(time);
+            // console.log(time);
             current = 0;
         }
     }
