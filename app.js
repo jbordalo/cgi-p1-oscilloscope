@@ -120,9 +120,9 @@ function toDrawData(program, bufferId, attr, size) {
     gl.enableVertexAttribArray(loc);
 }
 
-function drawWaves(current){
+function drawWaves(current) {
     gl.drawArrays(gl.LINE_STRIP, 0, current);
-    if(currentYNoteWave2[0] != 0.0){
+    if (currentYNoteWave2[0] != 0.0) {
         gl.uniform4fv(colorLoc, vec4(0.0, 0.0, 1.0, 1.0));
         gl.uniform3fv(notesLocY, currentYNoteWave2);
         gl.drawArrays(gl.LINE_STRIP, 0, current);
@@ -185,7 +185,7 @@ function render() {
     gl.uniform1f(timeLoc, time);
     gl.uniform4fv(colorLoc, vec4(0.0, 1.0, 1.0, 1.0));
     gl.uniform1f(vScaleLoc, 0.25 / voltsPerBlock);
-   // console.log("vScale: " + 0.25 / voltsPerBlock);
+    // console.log("vScale: " + 0.25 / voltsPerBlock);
     gl.uniform1f(hScaleLoc, secondsPerBlock * 6);
     //console.log("hScale: " + secondsPerBlock * 6);
     gl.uniform3fv(notesLocY, currentYNoteWave1);
@@ -201,13 +201,14 @@ function render() {
 
     if (t < 1 / 60) {
         drawWaves(10000);
+        time += 1 / 60;
     } else {
         let step = 10000 / renderTimes;
         current += step;
         if (current > 10000) { current = 10000; }
         drawWaves(current);
         if (current == 10000) {
-            time += 1.0;
+            time += renderTimes * (1 / 60);
             console.log(time);
             current = 0;
         }
