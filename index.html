@@ -9,13 +9,15 @@
 
       attribute float vTimeSample;
 
-      uniform float amp;
-      uniform float phase;
+      const float AMP = 1.0;
+      const float PHASE = 1.0;
       uniform vec3 notesX; // frequency of the notes on the x axis
       uniform vec3 notesY; // frequency of the notes on the y axis
+      uniform float offsetX;
+      uniform float offsetY;
 
       // time being the time recorded when the frame is fully drawn, 
-      // needed to continue drawing the wave on the right side of the window.
+      // needed to continue drawing the wave on the left side of the window.
       uniform float time;
 
       uniform float voltsPerBlock;
@@ -26,7 +28,7 @@
         float result = 0.0;
         for(int i = 0; i < 3; i++) {
           if(notes[i] != 0.0){
-            result += amp*sin(2.0 * PI * notes[i] * x + phase);
+            result += AMP*sin(2.0 * PI * notes[i] * x + PHASE);
           } else {
             break;
           }
@@ -35,13 +37,13 @@
       }
 
       void main() {
-        float timeNorm = time + vTimeSample/10000.0*HORIZONTAL_BLOCKS*(secondsPerBlock);
+        float timeNorm = time + vTimeSample/10000.0*HORIZONTAL_BLOCKS*(secondsPerBlock)-offsetX;
         if (notesX[0] == 0.0) {
           gl_Position.x = -1.0 + 2.0 * (vTimeSample) / (9999.0); // x = t
         } else {
           gl_Position.x = getImage(timeNorm, notesX) / (0.5*HORIZONTAL_BLOCKS*(secondsPerBlock));
         }
-        gl_Position.y = getImage(timeNorm, notesY) * (2.0/VERTICAL_BLOCKS/voltsPerBlock);
+        gl_Position.y = getImage(timeNorm, notesY) * (2.0/VERTICAL_BLOCKS/voltsPerBlock) + offsetY;
         gl_Position.w = 1.0;
       }
     </script>
@@ -95,6 +97,9 @@
       <label>volts/div</label>
       <input id="vertical-scale-slider" type="range" min="0" max="11" step="1" value="3" /> <label
         id="vertical-scale-label">1 V</label>
+      </br>
+      <label>y position</label>
+      <input id="y-position-slider" type="range" min="-2" max="2" step="0.1" value="0" />
     </div>
     <div id="horizontal-axis" style="float: right;">
       <label>Horizontal Axis:</label>
@@ -111,6 +116,9 @@
       <label>seconds/div</label>
       <input id="horizontal-scale-slider" type="range" min="0" max="14" step="1" value="5" /> <label
         id="horizontal-scale-label">0.005 s</label>
+      </br>
+      <label>x position</label>
+      <input id="x-position-slider" type="range" min="-2" max="2" step="0.1" value="0" />
     </div>
   </div>
 </body>

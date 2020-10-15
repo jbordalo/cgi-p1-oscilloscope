@@ -14,17 +14,23 @@ let $horizontalScaleSlider = document.getElementById('horizontal-scale-slider');
 let $xNoteSelector = document.getElementById('x-note-selector');
 let $wave1yNoteSelector = document.getElementById('wave1-y-note-selector');
 let $wave2yNoteSelector = document.getElementById('wave2-y-note-selector');
+let $yPositionSlider = document.getElementById('y-position-slider');
+let $xPositionSlider = document.getElementById('x-position-slider');
 
 /** @type {WebGLRenderingContext} */
 let gl;
 
-let currentYNoteWave1 = vec3(C4, 0.0, 0.0), currentYNoteWave2 = vec3(0.0, 0.0, 0.0, 0.0), currentXNote = vec3(0.0, 0.0, 0.0),
+let currentYNoteWave1 = vec3(1.0, 0.0, 0.0), 
+    currentYNoteWave2 = vec3(0.0, 0.0, 0.0, 0.0),
+    currentXNote = vec3(0.0, 0.0, 0.0),
     secondsPerBlock = HORIZONTAL_VALUES[parseFloat($horizontalScaleSlider.value, 10)],
     voltsPerBlock = VERTICAL_VALUES[parseFloat($verticalScaleSlider.value, 10)];
 
 let voltsLoc, secondsLoc;
 let notesLocY, notesLocX;
 let timeLoc, colorLoc;
+let offsetY = parseFloat($yPositionSlider.value, 10), offsetX = parseFloat($xPositionSlider.value, 10);
+let offsetYLoc, offsetXLoc;
 
 let time = 0;
 let current = 0;
@@ -55,6 +61,18 @@ $horizontalScaleSlider.addEventListener("input", e = () => {
     console.log(scale);
     document.getElementById('horizontal-scale-label').innerHTML = scale + " s";
     secondsPerBlock = scale;
+});
+
+$yPositionSlider.addEventListener("input", e = () => {
+    const offset = parseFloat($yPositionSlider.value, 10);
+    console.log(offset);
+    offsetY = offset;
+});
+
+$xPositionSlider.addEventListener("input", e = () => {
+    const offset = parseFloat($xPositionSlider.value, 10);
+    console.log(offset);
+    offsetX= offset;
 });
 
 //Returns a vec3 with the notes regarding the note or chord given in value
@@ -164,11 +182,11 @@ window.onload = function init() {
     gl.bindBuffer(gl.ARRAY_BUFFER, bufferId);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(times), gl.STATIC_DRAW);
 
-    let ampLoc = gl.getUniformLocation(program, 'amp');
-    gl.uniform1f(ampLoc, DEFAULT_AMPLITUDE);
-    let phaseLoc = gl.getUniformLocation(program, 'phase');
-    gl.uniform1f(phaseLoc, DEFAULT_PHASE);
-    colorLoc = gl.getUniformLocation(program, "vColor")
+    offsetXLoc = gl.getUniformLocation(program, 'offsetX');
+    offsetYLoc = gl.getUniformLocation(program, 'offsetY');
+    
+    colorLoc = gl.getUniformLocation(program, "vColor");
+
     voltsLoc = gl.getUniformLocation(program, "voltsPerBlock");
     secondsLoc = gl.getUniformLocation(program, "secondsPerBlock");
 
@@ -209,6 +227,8 @@ function render() {
     gl.uniform1f(secondsLoc, secondsPerBlock);
     gl.uniform3fv(notesLocY, currentYNoteWave1);
     gl.uniform3fv(notesLocX, currentXNote);
+    gl.uniform1f(offsetXLoc, offsetX);
+    gl.uniform1f(offsetYLoc, offsetY);
     //Defining the time it should take to render the frame,
     //considering the value per square  
     let timeToRender = HORIZONTAL_BLOCKS * (secondsPerBlock);
