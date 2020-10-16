@@ -1,3 +1,16 @@
+/* NOTES     Hz */
+const C0 = 16.35;
+const C1 = 32.70;
+const C2 = 65.41;
+const C3 = 130.81;
+const C4 = 261.63;
+const E4 = 329.63;
+const F4 = 349.23;
+const FSHARP4 = 369.99;
+const G4 = 392.00;
+const B4 = 493.88;
+const F5 = 698.46;
+
 const MAX_SAMPLES = 10000;
 
 const HORIZONTAL_BLOCKS = 12;
@@ -9,6 +22,7 @@ const DEFAULT_PHASE = 1.0;
 const VERTICAL_VALUES = [0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0, 200.0, 500.0];
 const HORIZONTAL_VALUES = [0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, .1, .2, .5, 1, 2, 5];
 
+// HTML elements
 let $verticalScaleSlider = document.getElementById('vertical-scale-slider');
 let $horizontalScaleSlider = document.getElementById('horizontal-scale-slider');
 let $xNoteSelector = document.getElementById('x-note-selector');
@@ -20,35 +34,34 @@ let $xPositionSlider = document.getElementById('x-position-slider');
 /** @type {WebGLRenderingContext} */
 let gl;
 
-let currentYNoteWave1 = vec3(1.0, 0.0, 0.0), 
+let currentYNoteWave1 = vec3(C4, 0.0, 0.0),
     currentYNoteWave2 = vec3(0.0, 0.0, 0.0, 0.0),
     currentXNote = vec3(0.0, 0.0, 0.0),
     secondsPerBlock = HORIZONTAL_VALUES[parseFloat($horizontalScaleSlider.value, 10)],
     voltsPerBlock = VERTICAL_VALUES[parseFloat($verticalScaleSlider.value, 10)];
 
+// Uniform locations
 let voltsLoc, secondsLoc;
 let notesLocY, notesLocX;
 let timeLoc, colorLoc;
 let offsetY = parseFloat($yPositionSlider.value, 10), offsetX = parseFloat($xPositionSlider.value, 10);
 let offsetYLoc, offsetXLoc;
 
+// Loop variables
 let time = 0;
 let current = 0;
 
+// Programs
 let program;
 let gridProgram;
 
+// Buffers
 let bufferId;
 let gridBufferId;
 
-function getVerticalScale(voltsPerBlock) {
-    return voltsPerBlock;
-}
-
-function getHorizontalScale(secondsPerBlock) {
-    return secondsPerBlock;
-}
-
+/**
+ * HANDLE SCALE SLIDERS
+ */
 $verticalScaleSlider.addEventListener("input", e = () => {
     const scale = VERTICAL_VALUES[parseFloat($verticalScaleSlider.value, 10)];
     console.log(scale);
@@ -63,6 +76,9 @@ $horizontalScaleSlider.addEventListener("input", e = () => {
     secondsPerBlock = scale;
 });
 
+/**
+ * HANDLE POSITION SLIDERS
+ */
 $yPositionSlider.addEventListener("input", e = () => {
     const offset = parseFloat($yPositionSlider.value, 10);
     console.log(offset);
@@ -72,28 +88,12 @@ $yPositionSlider.addEventListener("input", e = () => {
 $xPositionSlider.addEventListener("input", e = () => {
     const offset = parseFloat($xPositionSlider.value, 10);
     console.log(offset);
-    offsetX= offset;
+    offsetX = offset;
 });
 
-//Returns a vec3 with the notes regarding the note or chord given in value
-function pickNote(value) {
-    switch (value) {
-        case "time":
-        case "zero":
-            return vec3(0.0, 0.0, 0.0);
-        case "C4":
-            return vec3(C4, 0.0, 0.0);
-        case "G4":
-            return vec3(G4, 0.0, 0.0);
-        case "C4M":
-            return vec3(C4, G4, E4);
-        case "F4F4#":
-            return vec3(F4, FSHARP4, 0.0);
-        default:
-            break;
-    }
-}
-
+/**
+ * HANDLE NOTE/SIGNAL SELECTORS
+ */
 $xNoteSelector.addEventListener("change", e => {
     value = $xNoteSelector.options[$xNoteSelector.selectedIndex].value;
     console.log($xNoteSelector.options[$xNoteSelector.selectedIndex].value);
@@ -108,7 +108,6 @@ $wave1yNoteSelector.addEventListener("change", e => {
     currentYNoteWave1 = pickNote(value);
 });
 
-
 $wave2yNoteSelector.addEventListener("change", e => {
     value = $wave2yNoteSelector.options[$wave2yNoteSelector.selectedIndex].value;
     console.log($wave2yNoteSelector.options[$wave2yNoteSelector.selectedIndex].value);
@@ -116,7 +115,36 @@ $wave2yNoteSelector.addEventListener("change", e => {
     currentYNoteWave2 = pickNote(value);
 });
 
-//Generates the sequence of numbers from 0 to MAX_SAMPLES
+// Returns a vec3 with the notes regarding the note or chord given in value
+function pickNote(value) {
+    switch (value) {
+        case "time":
+        case "zero":
+            return vec3(0.0, 0.0, 0.0);
+        case "C0":
+            return vec3(C0, 0.0, 0.0);
+        case "C1":
+            return vec3(C1, 0.0, 0.0);
+        case "C2":
+            return vec3(C2, 0.0, 0.0);
+        case "C3":
+            return vec3(C3, 0.0, 0.0);
+        case "C4":
+            return vec3(C4, 0.0, 0.0);
+        case "G4":
+            return vec3(G4, 0.0, 0.0);
+        case "C4M":
+            return vec3(C4, G4, E4);
+        case "B4F5":
+            return vec3(B4, F5, 0.0);
+        case "F4F4#":
+            return vec3(F4, FSHARP4, 0.0);
+        default:
+            break;
+    }
+}
+
+// Generates the sequence of numbers from 0 to MAX_SAMPLES
 function genNumbers() {
     let a = [];
     for (let i = 0; i < MAX_SAMPLES; i++) {
@@ -125,24 +153,24 @@ function genNumbers() {
     return a;
 }
 
-//Generates points to draw the grid
+// Generates points to draw the grid
 function genGridPoints(vertical, horizontal) {
     let v = [];
     step = 2 / horizontal;
-    for (let i = -1; i < 1; i += step) {
+    for (let i = -1; i <= 1; i += step) {
         v.push(vec2(1.0, i));
         v.push(vec2(-1.0, i));
     }
     step = 2 / vertical;
-    for (let i = -1; i < 1; i += step) {
+    for (let i = -1; i <= 1; i += step) {
         v.push(vec2(i, 1.0));
         v.push(vec2(i, -1.0));
     }
     return v;
 }
 
-//Switches the program, binds the buffer,
-//preparing to draw the data using a different program.
+// Switches the program, binds the buffer,
+// preparing to draw the data using a different program.
 function toDrawData(program, bufferId, attr, size) {
     gl.useProgram(program);
     gl.bindBuffer(gl.ARRAY_BUFFER, bufferId);
@@ -152,12 +180,12 @@ function toDrawData(program, bufferId, attr, size) {
     gl.enableVertexAttribArray(loc);
 }
 
-//Draws one Wave or Two if the currentYNoteWave2 isn't 'empty' 
-//with current being the number of vertexes to draw.
+// Draws one Wave or Two if the currentYNoteWave2 isn't 'empty' 
+// with current being the number of vertexes to draw.
 function drawWaves(current) {
     gl.drawArrays(gl.LINE_STRIP, 0, current);
     if (currentYNoteWave2[0] != 0.0) {
-        gl.uniform4fv(colorLoc, vec4(0.0, 0.0, 1.0, 1.0));
+        gl.uniform4fv(colorLoc, vec4(1.0, 1.0, 0.0, 1.0));
         gl.uniform3fv(notesLocY, currentYNoteWave2);
         gl.drawArrays(gl.LINE_STRIP, 0, current);
     }
@@ -169,7 +197,7 @@ window.onload = function init() {
     if (!gl) { alert("WebGL isn't available"); }
 
     let times = genNumbers();
-    
+
     // Configure WebGL
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -184,7 +212,7 @@ window.onload = function init() {
 
     offsetXLoc = gl.getUniformLocation(program, 'offsetX');
     offsetYLoc = gl.getUniformLocation(program, 'offsetY');
-    
+
     colorLoc = gl.getUniformLocation(program, "vColor");
 
     voltsLoc = gl.getUniformLocation(program, "voltsPerBlock");
@@ -202,14 +230,14 @@ window.onload = function init() {
     gridProgram = initShaders(gl, "grid-vertex-shader", "fragment-shader");
     gridBufferId = gl.createBuffer();
 
-    //Generate grid points
+    // Generate grid points
     let grid = genGridPoints(HORIZONTAL_BLOCKS, VERTICAL_BLOCKS);
 
-     // Load the data into the GPU
+    // Load the data into the GPU
     gl.useProgram(gridProgram);
     gl.bindBuffer(gl.ARRAY_BUFFER, gridBufferId);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(grid), gl.STATIC_DRAW);
-    
+
     let gridColorLoc = gl.getUniformLocation(gridProgram, "vColor")
     gl.uniform4fv(gridColorLoc, vec4(1.0, 0.0, 1.0, 1.0));
 
@@ -218,9 +246,11 @@ window.onload = function init() {
 
 function render() {
     gl.clear(gl.COLOR_BUFFER_BIT);
-    //Switch to program that draws the wave(s)
+
+    // Switch to program that draws the wave(s)
     toDrawData(program, bufferId, "vTimeSample", 1);
-    //Set the uniforms
+
+    // Set the uniforms
     gl.uniform1f(timeLoc, time);
     gl.uniform4fv(colorLoc, vec4(0.0, 1.0, 1.0, 1.0));
     gl.uniform1f(voltsLoc, voltsPerBlock);
@@ -229,12 +259,13 @@ function render() {
     gl.uniform3fv(notesLocX, currentXNote);
     gl.uniform1f(offsetXLoc, offsetX);
     gl.uniform1f(offsetYLoc, offsetY);
-    //Defining the time it should take to render the frame,
-    //considering the value per square  
+
+    // Defining the time it should take to render the frame,
+    // considering the value per division  
     let timeToRender = HORIZONTAL_BLOCKS * (secondsPerBlock);
 
-    //time it takes to render a frame multiplied by 60
-    //60 being the default frames rendered per second 
+    // Time it takes to render a frame multiplied by 60
+    // 60 being the default frames rendered per second 
     let renderTimes = timeToRender * 60;
 
     if (timeToRender < 1 / 60) {
@@ -250,9 +281,9 @@ function render() {
             current = 0;
         }
     }
-    //Switches program to draw the grid
+    // Switches program to draw the grid
     toDrawData(gridProgram, gridBufferId, "gPosition", 2);
-    gl.drawArrays(gl.LINES, 0, (HORIZONTAL_BLOCKS + VERTICAL_BLOCKS) * 2);
+    gl.drawArrays(gl.LINES, 0, (HORIZONTAL_BLOCKS + VERTICAL_BLOCKS + 2) * 2);
 
     requestAnimationFrame(render);
 }

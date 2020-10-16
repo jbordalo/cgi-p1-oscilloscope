@@ -68,28 +68,41 @@
 
 <body>
   <title>CGI - Oscilloscope</title>
-  <canvas id="gl-canvas" width="940" height="720">
+  <canvas id="gl-canvas" width="1020" height="720">
     Oops... your browser doesn't support the HTML5 canvas element"
   </canvas>
   <div id="wrapper" style="float: left;">
+    <datalist id="center-tick">
+      <option value="0"></option>
+    </datalist>
     <div id="vertical-axis" style="float: left; margin-right: 20px;">
       <label>Vertical Axis: </label>
       </br>
       <label>Y-Signal:</label> </br>
       <label>Wave 1:</label>
       <select id="wave1-y-note-selector">
+        <option value="C0">C0</option>
+        <option value="C1">C1</option>
+        <option value="C2">C2</option>
+        <option value="C3">C3</option>
         <option value="C4" selected="selected">C4</option>
         <option value="G4">G4</option>
         <option value="C4M">C4 Major</option>
+        <option value="B4F5">B4 + F5</option>
         <option value="F4F4#">F4 + F4#</option>
         <option value="zero">Zero</option>
       </select>
       </br>
       <label>Wave 2:</label>
       <select id="wave2-y-note-selector">
+        <option value="C0">C0</option>
+        <option value="C1">C1</option>
+        <option value="C2">C2</option>
+        <option value="C3">C3</option>
         <option value="C4">C4</option>
         <option value="G4">G4</option>
         <option value="C4M">C4 Major</option>
+        <option value="B4F5">B4 + F5</option>
         <option value="F4F4#">F4 + F4#</option>
         <option value="zero" selected="selected">Zero</option>
       </select>
@@ -98,8 +111,8 @@
       <input id="vertical-scale-slider" type="range" min="0" max="11" step="1" value="3" /> <label
         id="vertical-scale-label">1 V</label>
       </br>
-      <label>y position</label>
-      <input id="y-position-slider" type="range" min="-2" max="2" step="0.1" value="0" />
+      <label>y-position</label>
+      <input id="y-position-slider" type="range" min="-2" max="2" step="0.1" value="0" list="center-tick" />
     </div>
     <div id="horizontal-axis" style="float: right;">
       <label>Horizontal Axis:</label>
@@ -107,9 +120,14 @@
       <label>X-Signal:</label> </br>
       <select id="x-note-selector">
         <option value="time" selected="selected">Time</option>
+        <option value="C0">C0</option>
+        <option value="C1">C1</option>
+        <option value="C2">C2</option>
+        <option value="C3">C3</option>
         <option value="C4">C4</option>
         <option value="G4">G4</option>
         <option value="C4M">C4 Major</option>
+        <option value="B4F5">B4 + F5</option>
         <option value="F4F4#">F4 + F4#</option>
       </select>
       </br></br>
@@ -117,8 +135,8 @@
       <input id="horizontal-scale-slider" type="range" min="0" max="14" step="1" value="5" /> <label
         id="horizontal-scale-label">0.005 s</label>
       </br>
-      <label>x position</label>
-      <input id="x-position-slider" type="range" min="-2" max="2" step="0.1" value="0" />
+      <label>x-position</label>
+      <input id="x-position-slider" type="range" min="-2" max="2" step="0.1" value="0" list="center-tick" />
     </div>
   </div>
 </body>
